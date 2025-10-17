@@ -77,15 +77,7 @@ export default function OnboardingPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [isReturning, setIsReturning] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [hasAccess, setHasAccess] = useState(false)
-
-  useEffect(() => {
-    // Check if user already has access granted in this session
-    const accessGranted = sessionStorage.getItem("newsly-onboarding-access")
-    if (accessGranted === "granted") {
-      setHasAccess(true)
-    }
-  }, [])
+  const [hasAccess, setHasAccess] = useState(true) // Bypass password gate
 
   useEffect(() => {
     if (!hasAccess) return;
@@ -176,6 +168,7 @@ export default function OnboardingPage() {
   }
 
   const skipQuestion = () => {
+    const visibleSteps = getVisibleSteps()
     if (currentStep < visibleSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     }
@@ -193,13 +186,12 @@ export default function OnboardingPage() {
   }
 
   const finishOnboarding = () => {
-    if (isEditing) {
-      // If editing, just go back to main page
-      window.location.href = "/"
-    } else {
-      // If first time, go to signup
-      window.location.href = "/signup"
-    }
+    // Save profile and mark onboarding as complete
+    localStorage.setItem('noozers-profile', JSON.stringify(profile))
+    localStorage.setItem('noozers-onboarding-complete', 'true')
+
+    // Go to home page
+    window.location.href = "/"
   }
 
   const getProgress = () => {
@@ -289,7 +281,7 @@ export default function OnboardingPage() {
 
       <main className="mx-auto max-w-6xl p-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left column - Progress and navigation */}
+          {/* Left column - Progress only */}
           <div className="lg:col-span-1 space-y-6">
             {isReturning && (
               <Card className="standardized-text-box">
@@ -317,7 +309,7 @@ export default function OnboardingPage() {
                   </div>
                   <Progress value={getProgress()} className="h-2 bg-[#f5f0e8]" />
                 </div>
-                
+
                 <div className="space-y-2">
                   {visibleSteps.map((step, index) => (
                     <div
@@ -346,50 +338,9 @@ export default function OnboardingPage() {
                 </div>
               </CardContent>
             </Card>
-
-            <div className="space-y-2">
-              <Button
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                variant="outline"
-                className="w-full border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#f5f0e8] hover:text-[#2d2416] disabled:opacity-50"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-
-              {!currentStepData?.required && (
-                <Button
-                  onClick={skipQuestion}
-                  variant="outline"
-                  className="w-full border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#f5f0e8] hover:text-[#2d2416]"
-                >
-                  Skip Question
-                </Button>
-              )}
-
-              {currentStep === visibleSteps.length - 1 ? (
-                <Button
-                  onClick={finishOnboarding}
-                  className="w-full bg-[#2d1810] font-serif text-sm font-medium text-[#faf8f3] hover:bg-[#1a0f08] dark-mode-button"
-                >
-                  <Check className="mr-2 h-4 w-4" />
-                  {isEditing ? "Save Changes" : "Continue to Sign Up"}
-                </Button>
-              ) : (
-                <Button
-                  onClick={nextStep}
-                  disabled={!canProceed()}
-                  className="w-full bg-[#2d1810] font-serif text-sm font-medium text-[#faf8f3] hover:bg-[#1a0f08] disabled:opacity-50 dark-mode-button"
-                >
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </div>
           </div>
 
-          {/* Right column - Main content */}
+          {/* Right column - Main content with buttons below */}
           <div className="lg:col-span-3">
             <Card className="standardized-text-box shadow-xl">
               <CardContent className="p-8">
@@ -404,6 +355,50 @@ export default function OnboardingPage() {
                   <OnboardingStep step={currentStepData} profile={profile} onUpdate={updateProfile} />
 
                   {showPreview && <ValuePreview profile={profile} currentStep={currentStepData?.id} />}
+
+                  {/* Navigation buttons below questions */}
+                  <div className="mt-8 space-y-3">
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={prevStep}
+                        disabled={currentStep === 0}
+                        variant="outline"
+                        className="flex-1 border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#f5f0e8] hover:text-[#2d2416] disabled:opacity-50"
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+
+                      {currentStep === visibleSteps.length - 1 ? (
+                        <Button
+                          onClick={finishOnboarding}
+                          className="flex-1 bg-[#2d1810] font-serif text-sm font-medium text-[#faf8f3] hover:bg-[#1a0f08] dark-mode-button"
+                        >
+                          <Check className="mr-2 h-4 w-4" />
+                          {isEditing ? "Save Changes" : "Save & Start Reading"}
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={nextStep}
+                          disabled={!canProceed()}
+                          className="flex-1 bg-[#2d1810] font-serif text-sm font-medium text-[#faf8f3] hover:bg-[#1a0f08] disabled:opacity-50 dark-mode-button"
+                        >
+                          Continue
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {!currentStepData?.required && (
+                      <Button
+                        onClick={skipQuestion}
+                        variant="outline"
+                        className="w-full border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#f5f0e8] hover:text-[#2d2416]"
+                      >
+                        Skip Question
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

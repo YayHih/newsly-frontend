@@ -233,6 +233,9 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
   const [selectedHobbies, setSelectedHobbies] = useState<string[]>(profile.hobbies || [])
   const [selectedTopicsToAvoid, setSelectedTopicsToAvoid] = useState<string[]>(profile.topicsToAvoid || [])
   const [selectedContentTypes, setSelectedContentTypes] = useState<string[]>(profile.preferredContentTypes || [])
+  const [customHobbyInput, setCustomHobbyInput] = useState("")
+  const [customIndustryInput, setCustomIndustryInput] = useState("")
+  const [customSubjectInput, setCustomSubjectInput] = useState("")
 
   const toggleInterest = (interest: string) => {
     const updated = selectedInterests.includes(interest)
@@ -288,6 +291,33 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
       : [...selectedContentTypes, type]
     setSelectedContentTypes(updated)
     onUpdate("preferredContentTypes", updated)
+  }
+
+  const addCustomHobby = () => {
+    if (customHobbyInput.trim() && !selectedHobbies.includes(customHobbyInput.trim())) {
+      const updated = [...selectedHobbies, customHobbyInput.trim()]
+      setSelectedHobbies(updated)
+      onUpdate("hobbies", updated)
+      setCustomHobbyInput("")
+    }
+  }
+
+  const addCustomIndustry = () => {
+    if (customIndustryInput.trim() && !selectedTargetIndustries.includes(customIndustryInput.trim())) {
+      const updated = [...selectedTargetIndustries, customIndustryInput.trim()]
+      setSelectedTargetIndustries(updated)
+      onUpdate("targetIndustries", updated)
+      setCustomIndustryInput("")
+    }
+  }
+
+  const addCustomSubject = () => {
+    if (customSubjectInput.trim() && !selectedAcademicSubjects.includes(customSubjectInput.trim())) {
+      const updated = [...selectedAcademicSubjects, customSubjectInput.trim()]
+      setSelectedAcademicSubjects(updated)
+      onUpdate("academicSubjects", updated)
+      setCustomSubjectInput("")
+    }
   }
 
   switch (step.id) {
@@ -533,7 +563,7 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
           <CardHeader>
             <CardTitle className="font-serif text-[#2d2416]">What industries interest you?</CardTitle>
             <CardDescription className="font-serif text-[#3d3426]">
-              Optional: Select industries you're interested in working in
+              Optional: Select industries you're interested in working in or add your own
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -555,6 +585,28 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
                 </div>
               </div>
             )}
+
+            {/* Custom industry input */}
+            <div className="space-y-2">
+              <Label className="font-serif text-sm text-[#2d2416]">Add your own industry:</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={customIndustryInput}
+                  onChange={(e) => setCustomIndustryInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addCustomIndustry()}
+                  placeholder="Type an industry and press Enter or Add"
+                  className="border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-[#2d2416] placeholder:text-[#8b7355]"
+                />
+                <Button
+                  onClick={addCustomIndustry}
+                  variant="outline"
+                  className="border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#e8dcc8] hover:text-[#2d2416]"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               {TARGET_INDUSTRIES.map((industry) => (
                 <Button
@@ -629,7 +681,7 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
           <CardHeader>
             <CardTitle className="font-serif text-[#2d2416]">What academic subjects interest you?</CardTitle>
             <CardDescription className="font-serif text-[#3d3426]">
-              Optional: Select subjects you're interested in learning about
+              Optional: Select subjects you're interested in learning about or add your own
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -651,6 +703,28 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
                 </div>
               </div>
             )}
+
+            {/* Custom subject input */}
+            <div className="space-y-2">
+              <Label className="font-serif text-sm text-[#2d2416]">Add your own subject:</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={customSubjectInput}
+                  onChange={(e) => setCustomSubjectInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addCustomSubject()}
+                  placeholder="Type a subject and press Enter or Add"
+                  className="border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-[#2d2416] placeholder:text-[#8b7355]"
+                />
+                <Button
+                  onClick={addCustomSubject}
+                  variant="outline"
+                  className="border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#e8dcc8] hover:text-[#2d2416]"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               {ACADEMIC_SUBJECTS.map((subject) => (
                 <Button
@@ -677,7 +751,7 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
           <CardHeader>
             <CardTitle className="font-serif text-[#2d2416]">What are your hobbies?</CardTitle>
             <CardDescription className="font-serif text-[#3d3426]">
-              Optional: Select activities you enjoy in your free time
+              Optional: Select activities you enjoy in your free time or add your own
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -699,6 +773,28 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
                 </div>
               </div>
             )}
+
+            {/* Custom hobby input */}
+            <div className="space-y-2">
+              <Label className="font-serif text-sm text-[#2d2416]">Add your own hobby:</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={customHobbyInput}
+                  onChange={(e) => setCustomHobbyInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addCustomHobby()}
+                  placeholder="Type a hobby and press Enter or Add"
+                  className="border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-[#2d2416] placeholder:text-[#8b7355]"
+                />
+                <Button
+                  onClick={addCustomHobby}
+                  variant="outline"
+                  className="border-2 border-[#8b7355] bg-[#f5f0e8] font-serif text-sm text-[#3d3426] hover:bg-[#e8dcc8] hover:text-[#2d2416]"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               {HOBBIES.map((hobby) => (
                 <Button

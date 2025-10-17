@@ -22,17 +22,24 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Simulate logged in user
-    const userData = {
-      email: "user@example.com",
-      username: "User",
-      signupMethod: "email",
-    }
-    localStorage.setItem("noozers-user", JSON.stringify(userData))
+    // Load actual user from localStorage
+    const savedUser = localStorage.getItem("noozers-user")
 
-    setUser(userData)
-    setEmail(userData.email || "")
-    setUsername(userData.username || "")
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser)
+        setUser(userData)
+        setEmail(userData.email || "")
+        setUsername(userData.name || userData.username || "")
+      } catch (error) {
+        console.error("Failed to parse user data", error)
+        // Redirect to signin if no valid user
+        window.location.href = "/signin"
+      }
+    } else {
+      // No user found, redirect to signin
+      window.location.href = "/signin"
+    }
   }, [])
 
   const handleUpdateAccount = async (e: React.FormEvent) => {
@@ -69,9 +76,12 @@ export default function SettingsPage() {
   }
 
   const handleSignOut = () => {
+    // Remove all auth-related data
     localStorage.removeItem("noozers-user")
-    localStorage.removeItem("noozers-onboarding-complete")
-    window.location.href = "/signin"
+    localStorage.removeItem("noozers-mock-token")
+    localStorage.removeItem("noozers-auth-token")
+    // Keep profile and onboarding data in case they want to sign back in
+    window.location.href = "/"
   }
 
   const handleDeleteAccount = () => {

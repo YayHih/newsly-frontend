@@ -26,15 +26,36 @@ export default function SignInPage() {
     setIsLoading(true)
 
     try {
-      const response = await api.login(email, password)
+      // Check if user exists in localStorage
+      const savedUser = localStorage.getItem("noozers-user")
+      const savedToken = localStorage.getItem("noozers-mock-token")
 
-      // Store token
-      tokenStorage.set(response.access_token)
+      if (savedUser && savedToken) {
+        const user = JSON.parse(savedUser)
+        const [savedEmail, savedPassword] = atob(savedToken).split(':')
 
-      // Redirect to home
-      window.location.href = "/"
+        if (savedEmail === email && savedPassword === password) {
+          // Login successful
+          tokenStorage.set(savedToken)
+
+          // Small delay to show feedback
+          await new Promise(resolve => setTimeout(resolve, 300))
+
+          // Check if user has completed onboarding
+          const hasProfile = localStorage.getItem("noozers-onboarding-complete")
+          if (!hasProfile) {
+            window.location.href = "/onboarding"
+          } else {
+            window.location.href = "/"
+          }
+          return
+        }
+      }
+
+      // If no match, show error
+      setError("Invalid email or password")
     } catch (err: any) {
-      setError(err.message || "Login failed")
+      setError("Login failed")
     } finally {
       setIsLoading(false)
     }
@@ -50,7 +71,7 @@ export default function SignInPage() {
   }
 
   const handleMakeProfile = () => {
-    window.location.href = "/profile-setup"
+    window.location.href = "/onboarding"
   }
 
   if (showCredentials) {

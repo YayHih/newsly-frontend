@@ -22,7 +22,7 @@ export function PasswordGate({ onPasswordCorrect }: PasswordGateProps) {
 
     // Check password against API
     try {
-      const response = await fetch("http://localhost:8001/auth/verify-password", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +70,6 @@ export function PasswordGate({ onPasswordCorrect }: PasswordGateProps) {
                 placeholder="Enter password"
                 className="w-full border-2 border-[#4a3020] bg-[#f5f0e8] font-serif text-[#3d2a1a] placeholder:text-[#8b6f47] focus:border-[#3d2a1a]"
                 disabled={isChecking}
-                autoFocus
               />
             </div>
 

@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     CACHE_TTL_SECONDS: int = int(os.getenv("CACHE_TTL_SECONDS", "86400"))
 
     # Onboarding password
-    ONBOARDING_PASSWORD: str = "I like apples"
+    ONBOARDING_PASSWORD: str = os.getenv("ONBOARDING_PASSWORD", "rocky")
 
     # Google OAuth
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")

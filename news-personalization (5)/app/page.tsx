@@ -19,8 +19,11 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+
     const darkMode = localStorage.getItem("noozers-dark-mode") === "true"
     setIsDarkMode(darkMode)
     if (darkMode) {
@@ -152,12 +155,12 @@ export default function Home() {
           <div className="mb-6 border-b-2 border-[#4a3020] dark:border-[#8b6f47] pb-2">
             <div className="text-center">
               <div className="fancy-heading text-sm text-[#4a3020] dark:text-[#c9a876]">
-                {date.toLocaleDateString("en-US", {
+                {mounted ? date.toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "long",
                   day: "numeric",
                   year: "numeric",
-                })}
+                }) : "Loading..."}
               </div>
             </div>
           </div>
@@ -171,21 +174,63 @@ export default function Home() {
                 />
               ))}
             </div>
-          ) : !isLoggedIn ? (
+          ) : !isLoggedIn && !hasProfile ? (
             <div className="text-center py-12">
               <Card className="vintage-card border-2 border-[#4a3020] dark:border-[#8b6f47] p-8">
                 <h3 className="font-serif text-xl font-bold text-[#3d2a1a] dark:text-[#e0d0b0] mb-4">
                   Welcome to Newsly
                 </h3>
                 <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876] mb-6">
-                  Sign in to get personalized news recommendations tailored to your interests
+                  Create a personalized profile to get news recommendations tailored to your interests
                 </p>
-                <Button
-                  onClick={() => window.location.href = "/signin"}
-                  className="bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-sm font-medium text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560]"
-                >
-                  Sign In to Get Started
-                </Button>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    onClick={() => window.location.href = "/onboarding"}
+                    className="bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-sm font-medium text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560]"
+                  >
+                    Create Profile
+                  </Button>
+                  <Button
+                    onClick={() => window.location.href = "/signin"}
+                    variant="outline"
+                    className="border-2 border-[#4a3020] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-sm text-[#3d2a1a] dark:text-[#e0d0b0]"
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          ) : !isLoggedIn && hasProfile ? (
+            <div className="text-center py-12">
+              <Card className="vintage-card border-2 border-[#4a3020] dark:border-[#8b6f47] p-8">
+                <h3 className="font-serif text-xl font-bold text-[#3d2a1a] dark:text-[#e0d0b0] mb-4">
+                  Profile Saved!
+                </h3>
+                <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876] mb-6">
+                  Your preferences have been saved locally. Create an account to sync your profile across devices and get personalized news recommendations from our API.
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    onClick={() => window.location.href = "/signup"}
+                    className="bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-sm font-medium text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560]"
+                  >
+                    Create Account
+                  </Button>
+                  <Button
+                    onClick={() => window.location.href = "/signin"}
+                    variant="outline"
+                    className="border-2 border-[#4a3020] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-sm text-[#3d2a1a] dark:text-[#e0d0b0]"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => window.location.href = "/onboarding"}
+                    variant="outline"
+                    className="border-2 border-[#4a3020] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-sm text-[#3d2a1a] dark:text-[#e0d0b0]"
+                  >
+                    Edit Profile
+                  </Button>
+                </div>
               </Card>
             </div>
           ) : recommendations.length === 0 ? (

@@ -14,7 +14,7 @@ import { api, tokenStorage } from "@/lib/api"
 
 export default function SignUpPage() {
   const router = useRouter()
-  const [hasAccess, setHasAccess] = useState(false)
+  const [hasAccess, setHasAccess] = useState(true) // Bypass password gate
   const [accessPassword, setAccessPassword] = useState("")
   const [accessError, setAccessError] = useState("")
   const [isCheckingAccess, setIsCheckingAccess] = useState(false)
@@ -27,11 +27,8 @@ export default function SignUpPage() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    // Check if user already has access
-    const accessGranted = sessionStorage.getItem("newsly-signup-access")
-    if (accessGranted === "granted") {
-      setHasAccess(true)
-    }
+    // Bypass password gate - always grant access
+    setHasAccess(true)
   }, [])
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
@@ -64,11 +61,23 @@ export default function SignUpPage() {
 
     setIsLoading(true)
 
+    // TEMPORARY: Save to localStorage instead of API to avoid slow database
     try {
-      const response = await api.register(email, name, password)
+      // Create a mock user account in localStorage
+      const mockUser = {
+        name,
+        email,
+        createdAt: new Date().toISOString()
+      }
+
+      localStorage.setItem("noozers-user", JSON.stringify(mockUser))
+      localStorage.setItem("noozers-mock-token", btoa(`${email}:${password}`))
 
       // Store token
-      tokenStorage.set(response.access_token)
+      tokenStorage.set(btoa(`${email}:${password}`))
+
+      // Small delay to show feedback
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       // Redirect to home
       window.location.href = "/"
