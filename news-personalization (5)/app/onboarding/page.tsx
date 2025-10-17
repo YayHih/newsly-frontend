@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { OnboardingStep } from "./components/onboarding-step"
 import { ValuePreview } from "./components/value-preview"
 import { CornerDecoration } from "../components/corner-decoration"
+import { PasswordGate } from "./components/password-gate"
 
 type UserProfile = {
   // Required fields
@@ -76,8 +77,18 @@ export default function OnboardingPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [isReturning, setIsReturning] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
+    // Check if user already has access granted in this session
+    const accessGranted = sessionStorage.getItem("newsly-onboarding-access")
+    if (accessGranted === "granted") {
+      setHasAccess(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hasAccess) return;
     // Check if user has partial profile saved
     const savedProfile = localStorage.getItem("noozers-profile")
     const onboardingComplete = localStorage.getItem("noozers-onboarding-complete")
@@ -235,6 +246,11 @@ export default function OnboardingPage() {
 
   const visibleSteps = getVisibleSteps()
   const currentStepData = visibleSteps[currentStep]
+
+  // Show password gate if user doesn't have access
+  if (!hasAccess) {
+    return <PasswordGate onPasswordCorrect={() => setHasAccess(true)} />
+  }
 
   return (
     <div className="victorian-bg page-flourish min-h-screen flex flex-col ornate-serif parchment-overlay paper-grain text-[#2d2416]">

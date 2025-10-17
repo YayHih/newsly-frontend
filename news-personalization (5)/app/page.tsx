@@ -10,13 +10,15 @@ import { Input } from "@/components/ui/input"
 import { CornerDecoration } from "./components/corner-decoration"
 import { DatePicker } from "./components/date-picker"
 import { NewsCard } from "./components/news-card"
+import { api, tokenStorage, Recommendation } from "@/lib/api"
 
 export default function Home() {
   const [date, setDate] = useState<Date>(new Date())
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [hasProfile, setHasProfile] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
 
   useEffect(() => {
     const darkMode = localStorage.getItem("noozers-dark-mode") === "true"
@@ -25,23 +27,29 @@ export default function Home() {
       document.documentElement.classList.add("dark")
     }
 
-    const userData = localStorage.getItem("noozers-user")
-    if (userData) {
+    const token = tokenStorage.get()
+    if (token) {
       setIsLoggedIn(true)
-      const parsed = JSON.parse(userData)
-      if (!parsed.username) {
-        const updatedUser = {
-          email: "user@example.com",
-          username: "User",
-          signupMethod: "email",
-        }
-        localStorage.setItem("noozers-user", JSON.stringify(updatedUser))
-      }
+      // Fetch recommendations
+      loadRecommendations(token)
+    } else {
+      setIsLoading(false)
     }
 
     const savedProfile = localStorage.getItem("noozers-profile")
     setHasProfile(!!savedProfile)
   }, [])
+
+  const loadRecommendations = async (token: string) => {
+    try {
+      const recs = await api.getRecommendations(token, 1, 20)
+      setRecommendations(recs)
+    } catch (error) {
+      console.error('Failed to load recommendations:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode
@@ -163,44 +171,56 @@ export default function Home() {
                 />
               ))}
             </div>
+          ) : !isLoggedIn ? (
+            <div className="text-center py-12">
+              <Card className="vintage-card border-2 border-[#4a3020] dark:border-[#8b6f47] p-8">
+                <h3 className="font-serif text-xl font-bold text-[#3d2a1a] dark:text-[#e0d0b0] mb-4">
+                  Welcome to Newsly
+                </h3>
+                <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876] mb-6">
+                  Sign in to get personalized news recommendations tailored to your interests
+                </p>
+                <Button
+                  onClick={() => window.location.href = "/signin"}
+                  className="bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-sm font-medium text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560]"
+                >
+                  Sign In to Get Started
+                </Button>
+              </Card>
+            </div>
+          ) : recommendations.length === 0 ? (
+            <div className="text-center py-12">
+              <Card className="vintage-card border-2 border-[#4a3020] dark:border-[#8b6f47] p-8">
+                <h3 className="font-serif text-xl font-bold text-[#3d2a1a] dark:text-[#e0d0b0] mb-4">
+                  No Recommendations Yet
+                </h3>
+                <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876] mb-6">
+                  Complete your profile to get personalized news recommendations
+                </p>
+                <Button
+                  onClick={() => window.location.href = "/onboarding"}
+                  className="bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-sm font-medium text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560]"
+                >
+                  Complete Your Profile
+                </Button>
+              </Card>
+            </div>
           ) : (
             <div className="space-y-6">
-              <NewsCard
-                category="Policy"
-                title="President Trump signs executive order affecting international student visas"
-                impact="New restrictions could impact your ability to work in the US after graduation and may affect OPT extensions"
-                action="Schedule a meeting with your university's international student office within two weeks"
-                icon="landmark"
-                date="Yesterday"
-                explanation="The executive order, signed yesterday, introduces new verification requirements for F-1 visa holders and reduces the OPT extension period from 24 to 12 months for STEM fields, including finance and economics. The order also implements stricter scrutiny for students from certain countries and requires additional financial documentation for visa renewals. Universities are currently seeking clarification on implementation timelines."
-              />
-              <NewsCard
-                category="Sports"
-                title="Argentina's midfielder Fernandez sidelined with minor ankle injury"
-                impact="The backup player will miss upcoming friendly matches but is expected to return for qualifiers"
-                action="Argentine Student Association hosting casual viewing party for next match"
-                icon="trophy"
-                date="3 days ago"
-                explanation="Enzo Fernandez suffered a grade 1 ankle sprain during training yesterday and will miss the upcoming friendly matches against Chile and Colombia. Team doctors expect him to return to training within three weeks, well before the next round of World Cup qualifiers. While not a starting player, Fernandez has been a valuable substitute in recent matches. The injury is unlikely to significantly impact the team's performance but does reduce their midfield depth temporarily."
-              />
-              <NewsCard
-                category="Careers"
-                title="Finance sector hiring surges 22% for international graduates"
-                impact="Firms are specifically seeking candidates with cross-cultural financial expertise"
-                action="Update your resume to highlight your international background and finance specialization"
-                icon="briefcase"
-                date="2 days ago"
-                explanation="Major financial institutions including Goldman Sachs, JP Morgan, and Morgan Stanley have announced expanded hiring initiatives targeting international graduates with specialized knowledge of emerging markets. The surge comes as firms expand operations in Asia and Latin America. Starting salaries for these positions average $92,000, approximately 15% higher than standard entry-level positions. The university career center is offering specialized resume workshops for international finance students next Tuesday."
-              />
-              <NewsCard
-                category="Music"
-                title="Radiohead adds nearby Riverside Theater to upcoming tour schedule"
-                impact="The band will perform just 90 minutes from campus as part of their limited regional tour"
-                action="Tickets go on sale this Friday at 10am through Ticketmaster"
-                icon="music"
-                date="4 days ago"
-                explanation="Radiohead has added a stop at the Riverside Theater in Milwaukee to their 'Digital Distortion' tour, just a 90-minute drive from campus. This is their only appearance in the state and one of just seven North American dates. While not directly on campus, the proximity makes it accessible for students. The venue is significantly smaller than their usual arenas, with a capacity of only 2,500, suggesting tickets will sell quickly. Several campus organizations are arranging carpools for interested students, with sign-up sheets available in the Student Union."
-              />
+              {recommendations.map((rec) => (
+                <NewsCard
+                  key={rec.id}
+                  category={rec.article_source || "News"}
+                  title={rec.article_title || "Untitled Article"}
+                  impact={rec.recommendation_reason || ""}
+                  action={rec.article_url ? `Read more at ${rec.article_source}` : ""}
+                  icon="newspaper"
+                  date={new Date(rec.created_at).toLocaleDateString()}
+                  explanation={rec.article_description || ""}
+                  url={rec.article_url || undefined}
+                  relevanceScore={rec.relevance_score}
+                />
+              ))}
             </div>
           )}
         </div>

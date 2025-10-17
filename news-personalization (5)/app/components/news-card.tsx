@@ -25,12 +25,14 @@ type NewsCardProps = {
   title: string
   impact: string
   action: string
-  icon: "dollar-sign" | "credit-card" | "briefcase" | "globe" | "landmark" | "trophy" | "music"
+  icon: "dollar-sign" | "credit-card" | "briefcase" | "globe" | "landmark" | "trophy" | "music" | "newspaper"
   explanation: string
   date: string
+  url?: string
+  relevanceScore?: number
 }
 
-export function NewsCard({ category, title, impact, action, icon, explanation, date }: NewsCardProps) {
+export function NewsCard({ category, title, impact, action, icon, explanation, date, url, relevanceScore }: NewsCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [isInterested, setIsInterested] = useState(false)
   const [isNotInterested, setIsNotInterested] = useState(false)
@@ -90,8 +92,10 @@ export function NewsCard({ category, title, impact, action, icon, explanation, d
         return <Trophy className={iconClass} />
       case "music":
         return <Music className={iconClass} />
+      case "newspaper":
+        return <Globe className={iconClass} />
       default:
-        return <DollarSign className={iconClass} />
+        return <Globe className={iconClass} />
     }
   }
 
@@ -270,13 +274,16 @@ export function NewsCard({ category, title, impact, action, icon, explanation, d
               ))}
             </ul>
 
-            <Button
-              size="sm"
-              className="mt-4 gap-1 border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-xs font-bold uppercase text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560] rounded-lg"
-            >
-              Read Full Article
-              <ExternalLink className="h-3 w-3" />
-            </Button>
+            {url && (
+              <Button
+                size="sm"
+                className="mt-4 gap-1 border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-xs font-bold uppercase text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560] rounded-lg"
+                onClick={() => window.open(url, '_blank')}
+              >
+                Read Full Article
+                <ExternalLink className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         </>
       )}

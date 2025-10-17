@@ -1,6 +1,6 @@
 # Newsly Database Documentation
 
-This database is currently being stored on the dell server, we want to create a seprate smaller database just containing the user reccomendations (articles reccomended to the users). we have the apis that you can see in api.md to call them (however the dell server is reverse sshed onto the oracle one so you will have to manage that.) I want you to run and compile news-personalization, create the small fast user reccomedtions database here (in postgress and fast api) link the two of them make sure it is secure. we want to run this in the future at scale for this website so make sure it is highly optimized. users should not be able to see the main page also unless they enter in a passweord during the questions step. make the password (I like apples)
+
 
 ## Overview
 
