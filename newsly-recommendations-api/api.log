@@ -1,0 +1,68 @@
+Traceback (most recent call last):
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/sources.py", line 252, in __call__
+    field_value = self.prepare_field_value(field_name, field, field_value, value_is_complex)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/sources.py", line 435, in prepare_field_value
+    raise e
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/sources.py", line 432, in prepare_field_value
+    value = self.decode_complex_value(field_name, field, value)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/sources.py", line 103, in decode_complex_value
+    return json.loads(value)
+  File "/usr/lib64/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib64/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib64/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/bin/uvicorn", line 7, in <module>
+    sys.exit(main())
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/uvicorn/main.py", line 418, in main
+    run(
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/uvicorn/main.py", line 587, in run
+    server.run()
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/uvicorn/server.py", line 62, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "/usr/lib64/python3.9/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/uvicorn/server.py", line 69, in serve
+    config.load()
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/uvicorn/config.py", line 458, in load
+    self.loaded_app = import_from_string(self.app)
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/uvicorn/importer.py", line 21, in import_from_string
+    module = importlib.import_module(module_str)
+  File "/usr/lib64/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/home/opc/NEWS/newsly-recommendations-api/main.py", line 13, in <module>
+    from config import settings
+  File "/home/opc/NEWS/newsly-recommendations-api/config.py", line 70, in <module>
+    settings = Settings.from_env()
+  File "/home/opc/NEWS/newsly-recommendations-api/config.py", line 62, in from_env
+    instance = cls()
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/main.py", line 72, in __init__
+    **__pydantic_self__._settings_build_values(
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/main.py", line 160, in _settings_build_values
+    return deep_update(*reversed([source() for source in sources]))
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/main.py", line 160, in <listcomp>
+    return deep_update(*reversed([source() for source in sources]))
+  File "/home/opc/NEWS/newsly-recommendations-api/venv/lib64/python3.9/site-packages/pydantic_settings/sources.py", line 254, in __call__
+    raise SettingsError(
+pydantic_settings.sources.SettingsError: error parsing value for field "CORS_ORIGINS" from source "EnvSettingsSource"
