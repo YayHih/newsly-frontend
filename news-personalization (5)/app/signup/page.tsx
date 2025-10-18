@@ -61,26 +61,24 @@ export default function SignUpPage() {
 
     setIsLoading(true)
 
-    // TEMPORARY: Save to localStorage instead of API to avoid slow database
     try {
-      // Create a mock user account in localStorage
-      const mockUser = {
-        name,
-        email,
-        createdAt: new Date().toISOString()
+      // Register user via API
+      const response = await api.register(email, name, password)
+
+      // Store the auth token
+      tokenStorage.set(response.access_token)
+
+      // Store user data
+      const userData = {
+        id: response.user_id,
+        name: response.name,
+        email: response.email,
+        signupMethod: 'email'
       }
+      localStorage.setItem("noozers-user", JSON.stringify(userData))
 
-      localStorage.setItem("noozers-user", JSON.stringify(mockUser))
-      localStorage.setItem("noozers-mock-token", btoa(`${email}:${password}`))
-
-      // Store token
-      tokenStorage.set(btoa(`${email}:${password}`))
-
-      // Small delay to show feedback
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Redirect to home
-      window.location.href = "/"
+      // Redirect to onboarding
+      window.location.href = "/onboarding"
     } catch (err: any) {
       setError(err.message || "Registration failed")
     } finally {

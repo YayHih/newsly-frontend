@@ -134,6 +134,18 @@ export const api = {
     return res.json();
   },
 
+  async generateRecommendations(token: string): Promise<{ message: string; count: number }> {
+    const res = await fetch(`${API_BASE}/recommendations/generate`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.detail || 'Failed to generate recommendations');
+    }
+    return res.json();
+  },
+
   // Interactions
   async recordInteraction(
     token: string,

@@ -26,36 +26,30 @@ export default function SignInPage() {
     setIsLoading(true)
 
     try {
-      // Check if user exists in localStorage
-      const savedUser = localStorage.getItem("noozers-user")
-      const savedToken = localStorage.getItem("noozers-mock-token")
+      // Login via API
+      const response = await api.login(email, password)
 
-      if (savedUser && savedToken) {
-        const user = JSON.parse(savedUser)
-        const [savedEmail, savedPassword] = atob(savedToken).split(':')
+      // Store the auth token
+      tokenStorage.set(response.access_token)
 
-        if (savedEmail === email && savedPassword === password) {
-          // Login successful
-          tokenStorage.set(savedToken)
-
-          // Small delay to show feedback
-          await new Promise(resolve => setTimeout(resolve, 300))
-
-          // Check if user has completed onboarding
-          const hasProfile = localStorage.getItem("noozers-onboarding-complete")
-          if (!hasProfile) {
-            window.location.href = "/onboarding"
-          } else {
-            window.location.href = "/"
-          }
-          return
-        }
+      // Store user data
+      const userData = {
+        id: response.user_id,
+        name: response.name,
+        email: response.email,
+        signupMethod: 'email'
       }
+      localStorage.setItem("noozers-user", JSON.stringify(userData))
 
-      // If no match, show error
-      setError("Invalid email or password")
+      // Check if user has completed onboarding
+      const hasProfile = localStorage.getItem("noozers-onboarding-complete")
+      if (!hasProfile) {
+        window.location.href = "/onboarding"
+      } else {
+        window.location.href = "/"
+      }
     } catch (err: any) {
-      setError("Login failed")
+      setError(err.message || "Invalid email or password")
     } finally {
       setIsLoading(false)
     }

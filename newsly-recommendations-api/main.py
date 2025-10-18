@@ -368,8 +368,18 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
         "email": user['email'],
         "name": user['name'],
         "picture_url": user.get('picture_url'),
+        "age_range": user.get('age_range'),
+        "education_level": user.get('education_level'),
+        "field_of_study": user.get('field_of_study'),
         "primary_interests": user.get('primary_interests', []),
         "secondary_interests": user.get('secondary_interests', []),
+        "hobbies": user.get('hobbies', []),
+        "topics_to_avoid": user.get('topics_to_avoid', []),
+        "preferred_complexity": user.get('preferred_complexity'),
+        "preferred_article_length": user.get('preferred_article_length'),
+        "news_frequency": user.get('news_frequency'),
+        "preferred_content_types": user.get('preferred_content_types', []),
+        "political_orientation": user.get('political_orientation'),
         "email_verified": user.get('email_verified', False)
     }
 
@@ -412,8 +422,8 @@ async def update_profile(
 # Recommendations endpoints
 @app.get("/recommendations", response_model=List[RecommendationResponse])
 async def get_recommendations(
-    page: int = Field(1, ge=1),
-    limit: int = Field(20, ge=1, le=100),
+    page: int = 1,
+    limit: int = 20,
     current_user: dict = Depends(get_current_user),
     _: None = Depends(rate_limiter)
 ):
@@ -437,7 +447,6 @@ async def get_recommendations(
             FROM user_recommendations r
             LEFT JOIN article_cache a ON r.article_id = a.article_id
             WHERE r.user_id = %s
-              AND r.served = FALSE
             ORDER BY r.relevance_score DESC, r.created_at DESC
             LIMIT %s OFFSET %s
         """
@@ -585,6 +594,103 @@ async def get_user_stats(
 
 
 # Helper functions
+@app.post("/recommendations/generate")
+async def generate_recommendations(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(rate_limiter)
+):
+    """Generate sample recommendations for user based on their interests"""
+    try:
+        user_id = current_user["user_id"]
+
+        # Get user interests
+        user_query = "SELECT primary_interests FROM users WHERE id = %s"
+        user_data = execute_query(user_query, (user_id,))
+
+        if not user_data or not user_data[0][0]:
+            return {"message": "No interests found. Please complete your profile first.", "count": 0}
+
+        interests = user_data[0][0]
+
+        # Generate sample articles based on interests
+        count = await generate_sample_recommendations(user_id, interests)
+
+        return {"message": f"Generated {count} recommendations", "count": count}
+
+    except Exception as e:
+        logger.error(f"Error generating recommendations: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate recommendations"
+        )
+
+
+async def generate_sample_recommendations(user_id: int, interests: list) -> int:
+    """Generate sample recommendations based on user interests"""
+    try:
+        # Sample articles database
+        sample_articles = {
+            "Technology": [
+                (101, "AI Breakthrough in Natural Language Processing", "TechCrunch", "https://techcrunch.com/ai-nlp", "Researchers achieve new milestone in language understanding"),
+                (102, "Quantum Computing Reaches Commercial Viability", "Wired", "https://wired.com/quantum", "Major tech companies announce quantum computing services"),
+            ],
+            "Business": [
+                (201, "Global Markets Rally on Economic Data", "Bloomberg", "https://bloomberg.com/markets", "Stock markets surge following positive indicators"),
+                (202, "Startups Raise Record Funding This Quarter", "Forbes", "https://forbes.com/startups", "Venture capital investment hits new highs"),
+            ],
+            "Politics": [
+                (301, "New Bipartisan Climate Bill Gains Support", "The Hill", "https://thehill.com/climate", "Lawmakers unite on environmental legislation"),
+                (302, "Election Reform Debate Intensifies", "Politico", "https://politico.com/reform", "Both parties propose competing solutions"),
+            ],
+            "Finance": [
+                (401, "Cryptocurrency Market Sees Major Surge", "CoinDesk", "https://coindesk.com/surge", "Bitcoin and altcoins hit new highs"),
+                (402, "Federal Reserve Signals Rate Change", "Wall Street Journal", "https://wsj.com/fed", "Economic policy shift expected"),
+            ],
+            "Science": [
+                (501, "New Cancer Treatment Shows Promise", "Nature", "https://nature.com/cancer", "Clinical trials demonstrate effectiveness"),
+                (502, "Mars Mission Achieves Major Milestone", "Space.com", "https://space.com/mars", "Rover makes groundbreaking discovery"),
+            ]
+        }
+
+        count = 0
+        article_id_offset = 1000 + (user_id * 10)
+
+        for interest in interests[:3]:  # Use first 3 interests
+            articles = sample_articles.get(interest, [])
+            for idx, (base_id, title, source, url, description) in enumerate(articles):
+                article_id = article_id_offset + base_id + idx
+
+                # Cache article
+                cache_query = """
+                    INSERT INTO article_cache (article_id, title, source, url, description, published_at)
+                    VALUES (%s, %s, %s, %s, %s, NOW() - INTERVAL '2 hours')
+                    ON CONFLICT (article_id) DO NOTHING
+                """
+                execute_query(cache_query, (article_id, title, source, url, description), fetch=False)
+
+                # Insert recommendation
+                relevance = 0.95 - (idx * 0.05)
+                rec_query = """
+                    INSERT INTO user_recommendations (
+                        user_id, article_id, relevance_score, recommendation_reason, algorithm_version
+                    )
+                    VALUES (%s, %s, %s, %s, '2.0')
+                    ON CONFLICT DO NOTHING
+                """
+                execute_query(
+                    rec_query,
+                    (user_id, article_id, relevance, f"Matches your interest in {interest}"),
+                    fetch=False
+                )
+                count += 1
+
+        return count
+
+    except Exception as e:
+        logger.error(f"Error generating sample recommendations: {e}")
+        return 0
+
+
 async def sync_recommendations_from_dell(user_id: int) -> int:
     """Sync recommendations from Dell server to local database"""
     try:

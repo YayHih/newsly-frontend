@@ -11,6 +11,7 @@ import { OnboardingStep } from "./components/onboarding-step"
 import { ValuePreview } from "./components/value-preview"
 import { CornerDecoration } from "../components/corner-decoration"
 import { PasswordGate } from "./components/password-gate"
+import { api } from "@/lib/api"
 
 type UserProfile = {
   // Required fields
@@ -185,13 +186,49 @@ export default function OnboardingPage() {
     nextStep()
   }
 
-  const finishOnboarding = () => {
-    // Save profile and mark onboarding as complete
-    localStorage.setItem('noozers-profile', JSON.stringify(profile))
-    localStorage.setItem('noozers-onboarding-complete', 'true')
+  const finishOnboarding = async () => {
+    try {
+      // Save profile locally
+      localStorage.setItem('noozers-profile', JSON.stringify(profile))
+      localStorage.setItem('noozers-onboarding-complete', 'true')
 
-    // Go to home page
-    window.location.href = "/"
+      // Get auth token
+      const token = localStorage.getItem('newsly-token')
+
+      // If user is logged in, save profile to database and generate recommendations
+      if (token) {
+        await api.updateProfile(token, {
+          name: profile.name,
+          age_range: profile.ageRange,
+          education_level: profile.educationLevel,
+          field_of_study: profile.fieldOfStudy,
+          primary_interests: profile.primaryInterests,
+          secondary_interests: profile.secondaryInterests,
+          hobbies: profile.hobbies,
+          topics_to_avoid: profile.topicsToAvoid,
+          preferred_complexity: profile.preferredComplexity,
+          preferred_article_length: profile.preferredArticleLength,
+          news_frequency: profile.newsFrequency,
+          preferred_content_types: profile.preferredContentTypes,
+          political_orientation: profile.politicalOrientation
+        })
+
+        // Generate recommendations based on profile
+        try {
+          await api.generateRecommendations(token)
+          console.log('Recommendations generated successfully')
+        } catch (err) {
+          console.error('Failed to generate recommendations:', err)
+        }
+      }
+
+      // Go to home page
+      window.location.href = "/"
+    } catch (error) {
+      console.error('Failed to save profile to database:', error)
+      // Still redirect to home even if API call fails
+      window.location.href = "/"
+    }
   }
 
   const getProgress = () => {

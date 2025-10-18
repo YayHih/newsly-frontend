@@ -1,122 +1,79 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import { ArrowLeft, Eye, EyeOff, LogOut, User } from "lucide-react"
+import { ArrowLeft, LogOut, User, BookOpen, Settings as SettingsIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { api, tokenStorage } from "@/lib/api"
 
 export default function SettingsPage() {
-  const [user, setUser] = useState<any>(null)
-  const [showPassword, setShowPassword] = useState(false)
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [email, setEmail] = useState("")
-  const [username, setUsername] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load actual user from localStorage
-    const savedUser = localStorage.getItem("noozers-user")
-
-    if (savedUser) {
-      try {
-        const userData = JSON.parse(savedUser)
-        setUser(userData)
-        setEmail(userData.email || "")
-        setUsername(userData.name || userData.username || "")
-      } catch (error) {
-        console.error("Failed to parse user data", error)
-        // Redirect to signin if no valid user
-        window.location.href = "/signin"
-      }
-    } else {
-      // No user found, redirect to signin
-      window.location.href = "/signin"
-    }
+    loadProfile()
   }, [])
 
-  const handleUpdateAccount = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const loadProfile = async () => {
+    try {
+      const token = tokenStorage.get()
+      if (!token) {
+        window.location.href = "/signin"
+        return
+      }
 
-    // Simulate API call
-    setTimeout(() => {
-      const updatedUser = { ...user, email, username }
-      localStorage.setItem("noozers-user", JSON.stringify(updatedUser))
-      setUser(updatedUser)
+      // Get user data from API
+      const userData = await api.getCurrentUser(token)
+
+      // Get full profile from database
+      const query = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const fullProfile = await query.json()
+
+      setProfile(fullProfile)
+    } catch (error) {
+      console.error('Failed to load profile:', error)
+      window.location.href = "/signin"
+    } finally {
       setIsLoading(false)
-      alert("Account updated successfully!")
-    }, 1000)
-  }
-
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newPassword !== confirmPassword) {
-      alert("New passwords don't match")
-      return
     }
-
-    setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
-      setIsLoading(false)
-      alert("Password updated successfully!")
-    }, 1000)
   }
 
   const handleSignOut = () => {
-    // Remove all auth-related data
+    tokenStorage.remove()
     localStorage.removeItem("noozers-user")
-    localStorage.removeItem("noozers-mock-token")
-    localStorage.removeItem("noozers-auth-token")
-    // Keep profile and onboarding data in case they want to sign back in
+    localStorage.removeItem("newsly-token")
     window.location.href = "/"
   }
 
-  const handleDeleteAccount = () => {
-    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      localStorage.clear()
-      window.location.href = "/signin"
-    }
-  }
-
-  if (!user) {
+  if (isLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center font-cursive"
-        style={{
-          background: "linear-gradient(135deg, #d4c5a0 0%, #e0d0b0 25%, #d8c8a5 50%, #dccdb0 75%, #d4c5a0 100%)",
-        }}
-      >
-        <Card className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] max-w-md">
+      <div className="victorian-bg min-h-screen flex items-center justify-center">
+        <Card className="standardized-text-box">
           <CardContent className="p-6 text-center">
-            <p className="text-[#4a3020] dark:text-[#c9a876]">Loading...</p>
+            <p className="text-[#4a3020] dark:text-[#c9a876]">Loading profile...</p>
           </CardContent>
         </Card>
       </div>
     )
   }
 
+  if (!profile) {
+    return null
+  }
+
   return (
-    <div className="victorian-bg min-h-screen flex flex-col font-serif">
+    <div className="victorian-bg min-h-screen flex flex-col font-serif paper-grain">
       <header className="vintage-paper sticky top-0 z-10 border-b-4 border-double border-[#1a0f08] dark:border-[#8b6f47] backdrop-blur-sm shadow-md">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <img 
-                src="/8370d9ef-9307-4d5e-a48e-27287fc5b683.png" 
-                alt="Noozers" 
+              <img
+                src="/8370d9ef-9307-4d5e-a48e-27287fc5b683.png"
+                alt="Noozers"
                 className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200 drop-shadow-lg"
                 style={{ filter: 'brightness(0.7) contrast(1.2) saturate(1.1)' }}
                 onClick={() => window.location.href = '/'}
@@ -135,196 +92,202 @@ export default function SettingsPage() {
       </header>
 
       <main className="flex-1 p-6">
-        <div className="mx-auto max-w-2xl">
-        <div className="mb-6">
-          <h2 className="mb-2 text-2xl font-bold text-[#1a0f08] dark:text-[#8b6f47]">Account Settings</h2>
-          <p className="text-sm text-[#4a3020] dark:text-[#c9a876]">Manage your account information and preferences</p>
-        </div>
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-6">
+            <h2 className="mb-2 text-3xl font-bold text-[#1a0f08] dark:text-[#8b6f47]">Your Profile</h2>
+            <p className="text-sm text-[#4a3020] dark:text-[#c9a876]">View and manage your personalized news preferences</p>
+          </div>
 
-        <div className="space-y-6">
-          {/* Account Information */}
-          <Card
-            className="standardized-text-box shadow-xl"
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#1a0f08] dark:text-[#8b6f47]">
-                <User className="h-5 w-5" />
-                Account Information
-              </CardTitle>
-              <CardDescription className="text-[#4a3020] dark:text-[#c9a876]">
-                Update your username, email address and account details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handleUpdateAccount} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="text-sm text-[#1a0f08] dark:text-[#8b6f47]">
-                    Username
-                  </Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-[#1a0f08] dark:text-[#e0d0b0]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm text-[#1a0f08] dark:text-[#8b6f47]">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-[#1a0f08] dark:text-[#e0d0b0]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm text-[#1a0f08] dark:text-[#8b6f47]">Sign-up Method</Label>
-                  <div className="rounded-md border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] p-3">
-                    <span className="text-sm text-[#4a3020] dark:text-[#c9a876] capitalize">
-                      {user.signupMethod || "Email"}
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="bg-[#1a0f08] dark:bg-[#8b6f47] text-sm text-[#f4e6d7] dark:text-[#1a0f08] hover:bg-[#0f0804] dark:hover:bg-[#a08560] disabled:opacity-50 dark-mode-button"
-                >
-                  {isLoading ? "Updating..." : "Update Account"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Password Settings - Only show for email signups */}
-          {user.signupMethod === "email" && (
-            <Card 
-              className="standardized-text-box shadow-xl"
-            >
+          <div className="space-y-6">
+            {/* Account Information */}
+            <Card className="standardized-text-box shadow-xl">
               <CardHeader>
-                <CardTitle className="text-[#1a0f08] dark:text-[#8b6f47]">Change Password</CardTitle>
-                <CardDescription className="text-[#4a3020] dark:text-[#c9a876]">
-                  Update your password to keep your account secure
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2 text-[#1a0f08] dark:text-[#8b6f47]">
+                  <User className="h-5 w-5" />
+                  Account Information
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleUpdatePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword" className="text-sm text-[#1a0f08] dark:text-[#8b6f47]">
-                      Current Password
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showPassword ? "text" : "password"}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-[#1a0f08] dark:text-[#e0d0b0] pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-[#8b7355]" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-[#8b7355]" />
-                        )}
-                      </Button>
-                    </div>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-1">Name</p>
+                    <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.name || "Not set"}</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword" className="text-sm text-[#1a0f08] dark:text-[#8b6f47]">
-                      New Password
-                    </Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-[#1a0f08] dark:text-[#e0d0b0]"
-                    />
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-1">Email</p>
+                    <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.email || "Not set"}</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm text-[#1a0f08] dark:text-[#8b6f47]">
-                      Confirm New Password
-                    </Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-[#1a0f08] dark:text-[#e0d0b0]"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="bg-[#1a0f08] dark:bg-[#8b6f47] text-sm text-[#f4e6d7] dark:text-[#1a0f08] hover:bg-[#0f0804] dark:hover:bg-[#a08560] disabled:opacity-50 dark-mode-button"
-                  >
-                    {isLoading ? "Updating..." : "Update Password"}
-                  </Button>
-                </form>
+                </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Profile Management */}
-          <Card
-            className="standardized-text-box shadow-xl"
-          >
-            <CardHeader>
-              <CardTitle className="text-[#1a0f08] dark:text-[#8b6f47]">Profile Management</CardTitle>
-              <CardDescription className="text-[#4a3020] dark:text-[#c9a876]">
-                Manage your profile and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                onClick={() => (window.location.href = "/onboarding")}
-                variant="outline"
-                className="w-full border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-sm text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
-              >
-                Add More Information
-              </Button>
-            </CardContent>
-          </Card>
+            {/* Profile Details from Database */}
+            <Card className="standardized-text-box shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#1a0f08] dark:text-[#8b6f47]">
+                  <BookOpen className="h-5 w-5" />
+                  Your Preferences
+                </CardTitle>
+                <CardDescription className="text-[#4a3020] dark:text-[#c9a876]">
+                  Information we use to personalize your news feed
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.age_range && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Age Range</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.age_range}</p>
+                    </div>
+                  )}
+                  {profile.education_level && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Education Level</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.education_level}</p>
+                    </div>
+                  )}
+                  {profile.field_of_study && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Field of Study</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.field_of_study}</p>
+                    </div>
+                  )}
+                  {profile.political_orientation && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Political Orientation</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.political_orientation}</p>
+                    </div>
+                  )}
+                </div>
 
-          {/* Account Actions */}
-          <Card
-            className="standardized-text-box shadow-xl"
-          >
-            <CardHeader>
-              <CardTitle className="text-[#1a0f08] dark:text-[#8b6f47]">Account Actions</CardTitle>
-              <CardDescription className="text-[#4a3020] dark:text-[#c9a876]">
-                Sign out or delete your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                className="w-full border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-sm text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
+                <Separator className="bg-[#8b7355]" />
 
-              <Separator className="bg-[#8b7355]" />
+                {profile.primary_interests && profile.primary_interests.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-2">Primary Interests</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.primary_interests.map((interest: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 bg-[#2d1810] dark:bg-[#8b6f47] text-[#f5f0e8] dark:text-[#1a0f08] text-xs rounded-full">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              <Button onClick={handleDeleteAccount} variant="destructive" className="w-full text-sm">
-                Delete Account
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                {profile.secondary_interests && profile.secondary_interests.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-2">Secondary Interests</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.secondary_interests.map((interest: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 border-2 border-[#8b7355] text-[#3d2a1a] dark:text-[#c9a876] text-xs rounded-full">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {profile.hobbies && profile.hobbies.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-2">Hobbies</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.hobbies.map((hobby: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 border-2 border-[#8b7355] text-[#3d2a1a] dark:text-[#c9a876] text-xs rounded-full">
+                          {hobby}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {profile.topics_to_avoid && profile.topics_to_avoid.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-2">Topics to Avoid</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.topics_to_avoid.map((topic: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs rounded-full">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Reading Preferences */}
+            <Card className="standardized-text-box shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#1a0f08] dark:text-[#8b6f47]">
+                  <SettingsIcon className="h-5 w-5" />
+                  Reading Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.preferred_complexity && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Preferred Complexity</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.preferred_complexity}</p>
+                    </div>
+                  )}
+                  {profile.preferred_article_length && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Article Length</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.preferred_article_length}</p>
+                    </div>
+                  )}
+                  {profile.news_frequency && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Reading Frequency</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.news_frequency}</p>
+                    </div>
+                  )}
+                </div>
+
+                {profile.preferred_content_types && profile.preferred_content_types.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-[#6b5744] mb-2">Content Types</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.preferred_content_types.map((type: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 border-2 border-[#8b7355] text-[#3d2a1a] dark:text-[#c9a876] text-xs rounded-full">
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="standardized-text-box shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-[#1a0f08] dark:text-[#8b6f47]">Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  onClick={() => (window.location.href = "/onboarding")}
+                  variant="outline"
+                  className="w-full border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-sm text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
+                >
+                  Edit Profile
+                </Button>
+
+                <Separator className="bg-[#8b7355]" />
+
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="w-full border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] text-sm text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>

@@ -543,8 +543,272 @@ body {
 }
 
 .dark .dark-mode-button:hover {
-  background: 
+  background:
     linear-gradient(rgba(139, 111, 71, 0.3), rgba(130, 102, 68, 0.25)),
     #2d1810 !important;
   border-color: #c9a876 !important;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE DESIGN
+   ======================================== */
+
+/* Base mobile optimizations */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Reduce ornate background effects on mobile for performance */
+  .victorian-bg::before,
+  .page-flourish::before,
+  .page-flourish::after {
+    display: none;
+  }
+
+  /* Simplify shadows on mobile for performance */
+  .standardized-text-box {
+    box-shadow:
+      0 4px 8px rgba(26, 15, 8, 0.3),
+      inset 0 1px 2px rgba(26, 15, 8, 0.1) !important;
+  }
+
+  .dark .standardized-text-box {
+    box-shadow:
+      0 4px 8px rgba(139, 111, 71, 0.3),
+      inset 0 1px 2px rgba(139, 111, 71, 0.1) !important;
+  }
+
+  /* Mobile-friendly embellished title */
+  .embellished-title {
+    font-size: 2.5rem;
+    letter-spacing: 0.1em;
+    text-shadow: 2px 2px 4px rgba(61, 42, 26, 0.2);
+  }
+
+  /* Remove ornate decorations on small screens */
+  .ornate-text::before,
+  .ornate-text::after,
+  .fancy-heading::before,
+  .fancy-heading::after {
+    display: none;
+  }
+
+  /* Mobile-friendly spacing */
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .px-6 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .py-4,
+  .py-5 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .gap-4 {
+    gap: 0.75rem !important;
+  }
+
+  .gap-8 {
+    gap: 1.5rem !important;
+  }
+
+  /* Mobile navigation improvements */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  /* Mobile button sizing */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Improve input fields on mobile */
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+  }
+
+  /* Mobile-friendly cards */
+  .vintage-card,
+  .standardized-text-box {
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Stack layouts vertically on mobile */
+  .grid.grid-cols-1.lg\\:grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile-friendly logo sizing */
+  img[alt="Noozers"] {
+    max-height: 60px;
+    width: auto;
+  }
+
+  /* Improve readability on small screens */
+  .text-xs {
+    font-size: 0.8125rem !important;
+  }
+
+  .text-sm {
+    font-size: 0.9375rem !important;
+  }
+
+  /* Better touch targets for mobile */
+  a,
+  button,
+  [role="button"] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Tablet-specific optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .embellished-title {
+    font-size: 3rem;
+  }
+
+  img[alt="Noozers"] {
+    max-height: 80px;
+  }
+
+  .p-6 {
+    padding: 1.5rem !important;
+  }
+}
+
+/* Small mobile devices (< 375px) */
+@media (max-width: 374px) {
+  .embellished-title {
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+  }
+
+  img[alt="Noozers"] {
+    max-height: 48px;
+  }
+
+  button {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 896px) and (orientation: landscape) {
+  header {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  img[alt="Noozers"] {
+    max-height: 48px;
+  }
+
+  .embellished-title {
+    font-size: 2rem;
+  }
+}
+
+/* High DPI / Retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .embellished-title,
+  .fancy-heading,
+  .ornate-text {
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Dark mode specific mobile optimizations */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+  .dark body {
+    background-attachment: scroll; /* Better performance on mobile */
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 768px) {
+  /* Improve focus visibility */
+  *:focus-visible {
+    outline: 3px solid #8b6f47;
+    outline-offset: 2px;
+  }
+
+  .dark *:focus-visible {
+    outline-color: #c9a876;
+  }
+
+  /* Ensure proper contrast for text */
+  .text-muted,
+  .text-gray-500,
+  .text-gray-600 {
+    color: #4a3020 !important;
+  }
+
+  .dark .text-muted,
+  .dark .text-gray-500,
+  .dark .text-gray-600 {
+    color: #c9a876 !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .victorian-bg::before,
+  .page-flourish::before,
+  .page-flourish::after,
+  .parchment-overlay::before,
+  .paper-grain::after {
+    display: none;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .standardized-text-box {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

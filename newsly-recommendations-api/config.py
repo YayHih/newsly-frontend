@@ -33,7 +33,13 @@ class Settings(BaseSettings):
     DELL_SERVER_DB_PASSWORD: str = os.getenv("DELL_SERVER_DB_PASSWORD", "campuslens2024")
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3003",
+        "https://newsliy.org",
+        "http://newsliy.org"
+    ]
 
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))

@@ -83,12 +83,16 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 py-4">
           {/* Simple title - no decorations */}
           <div className="mb-0 flex justify-center">
-            <img 
-              src="/8370d9ef-9307-4d5e-a48e-27287fc5b683.png" 
-              alt="Noozers" 
+            <img
+              src="/8370d9ef-9307-4d5e-a48e-27287fc5b683.png"
+              alt="Noozers"
               className="h-48 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200 drop-shadow-lg"
               style={{ filter: 'brightness(0.7) contrast(1.2) saturate(1.1)' }}
               onClick={() => window.location.href = '/'}
+              loading="eager"
+              decoding="async"
+              width="400"
+              height="192"
             />
           </div>
 
@@ -155,12 +159,12 @@ export default function Home() {
           <div className="mb-6 border-b-2 border-[#4a3020] dark:border-[#8b6f47] pb-2">
             <div className="text-center">
               <div className="fancy-heading text-sm text-[#4a3020] dark:text-[#c9a876]">
-                {mounted ? date.toLocaleDateString("en-US", {
+                {mounted && date.toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "long",
                   day: "numeric",
                   year: "numeric",
-                }) : "Loading..."}
+                })}
               </div>
             </div>
           </div>
