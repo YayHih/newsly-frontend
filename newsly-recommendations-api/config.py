@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
 
     # Dell Server Configuration
+    USE_DELL_SERVER: bool = os.getenv("USE_DELL_SERVER", "false").lower() == "true"
     DELL_SERVER_HOST: str = os.getenv("DELL_SERVER_HOST", "localhost")
     DELL_SERVER_PORT: int = int(os.getenv("DELL_SERVER_PORT", "3333"))
     DELL_SERVER_API_URL: str = os.getenv("DELL_SERVER_API_URL", "http://localhost:8000")

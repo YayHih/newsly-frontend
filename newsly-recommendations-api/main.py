@@ -18,6 +18,7 @@ from auth import create_access_token, get_current_user
 from user_service import UserService
 from rate_limiter import RateLimiter
 from oauth import oauth
+from dell_server_client import dell_client
 
 # Configure logging
 logging.basicConfig(
@@ -193,13 +194,28 @@ async def register(user: UserRegister, _: None = Depends(rate_limiter)):
                 detail="User with this email already exists"
             )
 
-        # Create user (with SQL injection protection in UserService)
+        # Create user on Oracle database (with SQL injection protection in UserService)
         new_user = UserService.create_user(
             email=user.email,
             name=user.name,
             password=user.password,
             oauth_provider='email'
         )
+
+        # Register user on Dell server for recommendations
+        try:
+            dell_auth = await dell_client.register_user(
+                email=user.email,
+                password=user.password,
+                name=user.name
+            )
+            if dell_auth:
+                logger.info(f"User {user.email} successfully registered on Dell server")
+            else:
+                logger.warning(f"Failed to register {user.email} on Dell server - will retry on first login")
+        except Exception as dell_error:
+            logger.error(f"Dell server registration failed for {user.email}: {dell_error}")
+            # Continue with registration - Dell sync can happen later
 
         # Create access token
         access_token = create_access_token(
@@ -599,165 +615,64 @@ async def generate_recommendations(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(rate_limiter)
 ):
-    """Generate sample recommendations for user based on their interests"""
+    """Trigger Dell server to generate recommendations for user"""
     try:
-        user_id = current_user["user_id"]
+        # Get user's token for Dell server
+        # Note: This assumes user is also registered on Dell server
+        # We'll use their Oracle token to authenticate with Dell
 
-        # Get user interests
-        user_query = "SELECT primary_interests FROM users WHERE id = %s"
-        user_data = execute_query(user_query, (user_id,))
+        logger.info(f"Requesting Dell server to generate recommendations for user {current_user['user_id']}")
 
-        if not user_data or not user_data[0][0]:
-            return {"message": "No interests found. Please complete your profile first.", "count": 0}
+        # Get current user's Dell token from local storage or create new session
+        user_email = current_user['email']
 
-        interests = user_data[0][0]
+        # For now, pass the current token - Dell server should validate it
+        # In production, you may need to sync tokens between servers
+        result = await dell_client.regenerate_recommendations(
+            user_token=current_user['token']  # Pass the current JWT token
+        )
 
-        # Generate sample articles based on interests
-        count = await generate_sample_recommendations(user_id, interests)
-
-        return {"message": f"Generated {count} recommendations", "count": count}
+        logger.info(f"Dell server generated recommendations: {result}")
+        return result
 
     except Exception as e:
-        logger.error(f"Error generating recommendations: {e}")
+        logger.error(f"Error generating recommendations from Dell server: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate recommendations"
+            detail=f"Failed to generate recommendations: {str(e)}"
         )
 
 
-async def generate_sample_recommendations(user_id: int, interests: list) -> int:
-    """Generate sample recommendations based on user interests"""
-    try:
-        # Sample articles database
-        sample_articles = {
-            "Technology": [
-                (101, "AI Breakthrough in Natural Language Processing", "TechCrunch", "https://techcrunch.com/ai-nlp", "Researchers achieve new milestone in language understanding"),
-                (102, "Quantum Computing Reaches Commercial Viability", "Wired", "https://wired.com/quantum", "Major tech companies announce quantum computing services"),
-            ],
-            "Business": [
-                (201, "Global Markets Rally on Economic Data", "Bloomberg", "https://bloomberg.com/markets", "Stock markets surge following positive indicators"),
-                (202, "Startups Raise Record Funding This Quarter", "Forbes", "https://forbes.com/startups", "Venture capital investment hits new highs"),
-            ],
-            "Politics": [
-                (301, "New Bipartisan Climate Bill Gains Support", "The Hill", "https://thehill.com/climate", "Lawmakers unite on environmental legislation"),
-                (302, "Election Reform Debate Intensifies", "Politico", "https://politico.com/reform", "Both parties propose competing solutions"),
-            ],
-            "Finance": [
-                (401, "Cryptocurrency Market Sees Major Surge", "CoinDesk", "https://coindesk.com/surge", "Bitcoin and altcoins hit new highs"),
-                (402, "Federal Reserve Signals Rate Change", "Wall Street Journal", "https://wsj.com/fed", "Economic policy shift expected"),
-            ],
-            "Science": [
-                (501, "New Cancer Treatment Shows Promise", "Nature", "https://nature.com/cancer", "Clinical trials demonstrate effectiveness"),
-                (502, "Mars Mission Achieves Major Milestone", "Space.com", "https://space.com/mars", "Rover makes groundbreaking discovery"),
-            ]
-        }
-
-        count = 0
-        article_id_offset = 1000 + (user_id * 10)
-
-        for interest in interests[:3]:  # Use first 3 interests
-            articles = sample_articles.get(interest, [])
-            for idx, (base_id, title, source, url, description) in enumerate(articles):
-                article_id = article_id_offset + base_id + idx
-
-                # Cache article
-                cache_query = """
-                    INSERT INTO article_cache (article_id, title, source, url, description, published_at)
-                    VALUES (%s, %s, %s, %s, %s, NOW() - INTERVAL '2 hours')
-                    ON CONFLICT (article_id) DO NOTHING
-                """
-                execute_query(cache_query, (article_id, title, source, url, description), fetch=False)
-
-                # Insert recommendation
-                relevance = 0.95 - (idx * 0.05)
-                rec_query = """
-                    INSERT INTO user_recommendations (
-                        user_id, article_id, relevance_score, recommendation_reason, algorithm_version
-                    )
-                    VALUES (%s, %s, %s, %s, '2.0')
-                    ON CONFLICT DO NOTHING
-                """
-                execute_query(
-                    rec_query,
-                    (user_id, article_id, relevance, f"Matches your interest in {interest}"),
-                    fetch=False
-                )
-                count += 1
-
-        return count
-
-    except Exception as e:
-        logger.error(f"Error generating sample recommendations: {e}")
-        return 0
-
-
 async def sync_recommendations_from_dell(user_id: int) -> int:
-    """Sync recommendations from Dell server to local database"""
+    """
+    Fetch recommendations from Dell server API and cache locally
+    This is called when user has no local recommendations
+    """
     try:
-        # Parameterized query to fetch from Dell server
-        query = """
-            SELECT
-                r.article_id,
-                r.relevance_score,
-                r.score_breakdown,
-                r.recommendation_reason,
-                r.algorithm_version,
-                a.title,
-                a.source,
-                a.url,
-                a.published_at,
-                a.description
-            FROM user_recommendations r
-            JOIN news_articles a ON r.article_id = a.id
-            WHERE r.user_id = %s
-              AND r.created_at > NOW() - INTERVAL '7 days'
-            ORDER BY r.relevance_score DESC
-            LIMIT 100
-        """
-        recommendations = execute_query(query, (user_id,), use_dell_server=True)
+        logger.info(f"Syncing recommendations from Dell server for user {user_id}")
 
-        if not recommendations:
+        # Get user's token (we need to fetch/create Dell server token)
+        # For now, we'll need to get the user's email and create a session
+        user_query = "SELECT email FROM users WHERE id = %s"
+        user_data = execute_query(user_query, (user_id,))
+
+        if not user_data:
+            logger.error(f"User {user_id} not found in database")
             return 0
 
-        # Insert into local database (parameterized queries)
-        count = 0
-        for rec in recommendations:
-            try:
-                # Cache article data
-                cache_query = """
-                    INSERT INTO article_cache (
-                        article_id, title, source, url, published_at, description
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (article_id) DO UPDATE SET
-                        title = EXCLUDED.title,
-                        source = EXCLUDED.source,
-                        cached_at = NOW(),
-                        expires_at = NOW() + INTERVAL '24 hours'
-                """
-                execute_query(cache_query, rec[5:11], fetch=False)
+        user_email = user_data[0][0]
 
-                # Insert recommendation
-                rec_query = """
-                    INSERT INTO user_recommendations (
-                        user_id, article_id, relevance_score, score_breakdown,
-                        recommendation_reason, algorithm_version, created_at
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, NOW())
-                    ON CONFLICT (user_id, article_id, created_at) DO NOTHING
-                """
-                execute_query(
-                    rec_query,
-                    (user_id, rec[0], rec[1], rec[2], rec[3], rec[4]),
-                    fetch=False
-                )
-                count += 1
+        # TODO: Implement proper token management between Oracle and Dell servers
+        # For now, we'll assume the user is authenticated on Dell server
+        # In production, you should:
+        # 1. Store Dell server token in Oracle database
+        # 2. Refresh Dell token when needed
+        # 3. Handle authentication errors gracefully
 
-            except Exception as e:
-                logger.error(f"Error syncing individual recommendation: {e}")
-                continue
+        logger.warning("Dell server sync requires SSH tunnel and proper authentication")
+        logger.info("Please ensure SSH tunnel is running: ssh -L 8001:localhost:8000 -J opc@129.153.226.112 campuslens@localhost -p 3333")
 
-        return count
+        return 0
 
     except Exception as e:
         logger.error(f"Error syncing from Dell server: {e}")

@@ -103,55 +103,8 @@ export function NewsCard({ category, title, impact, action, icon, explanation, d
     return "border-2 border-[#4a3020] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#f5f0e8] font-serif text-xs font-bold uppercase tracking-wide text-[#1a0f08] dark:text-[#1a0f08] rounded-lg"
   }
 
-  const getSources = () => {
-    switch (category) {
-      case "Policy":
-        return ["White House", "USCIS", "Chronicle of Higher Ed", "Reuters"]
-      case "Sports":
-        return ["ESPN", "TyC Sports", "The Athletic", "Olé"]
-      case "Careers":
-        return ["Financial Times", "Bloomberg", "WSJ", "LinkedIn"]
-      case "Music":
-        return ["Pitchfork", "Milwaukee Journal", "Consequence of Sound", "NME"]
-      default:
-        return ["Financial Times", "Bloomberg", "WSJ", "Reuters"]
-    }
-  }
-
-  const getRelatedTopics = () => {
-    switch (category) {
-      case "Policy":
-        return [
-          "How visa changes affect finance career paths",
-          "University response to new immigration policies",
-          "Legal resources for international students",
-        ]
-      case "Sports":
-        return [
-          "Argentina's upcoming match schedule",
-          "Impact of injuries on national team performance",
-          "Local Argentine community events",
-        ]
-      case "Careers":
-        return [
-          "Cross-border financial opportunities for graduates",
-          "Networking events with international finance firms",
-          "Visa sponsorship trends in finance sector",
-        ]
-      case "Music":
-        return [
-          "Campus transportation options to nearby venues",
-          "Student discount opportunities for concerts",
-          "Other notable upcoming performances in the region",
-        ]
-      default:
-        return [
-          "How policy changes affect international students in finance",
-          "Cross-border financial opportunities for graduates",
-          "Navigating visa regulations while pursuing finance careers",
-        ]
-    }
-  }
+  // Note: Sources and related topics removed - using real article data from Dell server
+  // The category (source) is now displayed in the card header
 
   return (
     <Card className="standardized-text-box overflow-hidden rounded-2xl">
@@ -246,38 +199,14 @@ export function NewsCard({ category, title, impact, action, icon, explanation, d
           <Separator className="mx-6 w-auto border-t-2 border-dashed border-[#4a3020] dark:border-[#8b6f47]" />
           <div className="px-6 py-4">
             <h4 className="mb-2 border-b border-[#4a3020] dark:border-[#8b6f47] pb-1 fancy-heading text-[#1a0f08] dark:text-[#e0d0b0]">
-              Simple Explanation
+              Article Summary
             </h4>
-            <p className="mb-4 ornate-serif text-sm leading-relaxed text-[#2d1810] dark:text-[#d0be9a]">{explanation}</p>
-            <h4 className="mb-2 border-b border-[#4a3020] dark:border-[#8b6f47] pb-1 fancy-heading text-[#1a0f08] dark:text-[#e0d0b0]">
-              Sources
-            </h4>
-            <div className="mb-4 flex flex-wrap gap-2">
-              {getSources().map((source) => (
-                <span
-                  key={source}
-                  className="border border-[#4a3020] dark:border-[#8b6f47] bg-[#d0be9a] dark:bg-[#3a2418] px-2.5 py-0.5 font-serif text-xs font-medium italic text-[#2d1810] dark:text-[#d0be9a] rounded-md"
-                >
-                  {source}
-                </span>
-              ))}
-            </div>
-            <h4 className="mb-2 border-b border-[#4a3020] dark:border-[#8b6f47] pb-1 fancy-heading text-[#3d2a1a] dark:text-[#e0d0b0]">
-              Related Topics
-            </h4>
-            <ul className="space-y-2 ornate-serif text-sm">
-              {getRelatedTopics().map((article, i) => (
-                <li key={i} className="flex items-center gap-1 text-[#4a3020] dark:text-[#c9a876] underline">
-                  <ExternalLink className="h-3 w-3" />
-                  {article}
-                </li>
-              ))}
-            </ul>
+            <p className="mb-4 ornate-serif text-sm leading-relaxed text-[#2d1810] dark:text-[#d0be9a]">{explanation || "Click 'Read Full Article' to learn more."}</p>
 
             {url && (
               <Button
                 size="sm"
-                className="mt-4 gap-1 border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-xs font-bold uppercase text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560] rounded-lg"
+                className="mt-2 gap-1 border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#3d2a1a] dark:bg-[#8b6f47] font-serif text-xs font-bold uppercase text-[#f5f1e8] dark:text-[#1a0f08] hover:bg-[#2d1f16] dark:hover:bg-[#a08560] rounded-lg"
                 onClick={() => window.open(url, '_blank')}
               >
                 Read Full Article
