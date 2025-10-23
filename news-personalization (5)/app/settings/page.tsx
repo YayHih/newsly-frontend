@@ -158,6 +158,30 @@ export default function SettingsPage() {
                       <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.political_orientation}</p>
                     </div>
                   )}
+                  {profile.news_frequency && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">News Frequency</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.news_frequency}</p>
+                    </div>
+                  )}
+                  {profile.preferred_complexity && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Preferred Complexity</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.preferred_complexity}</p>
+                    </div>
+                  )}
+                  {profile.preferred_article_length && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Preferred Article Length</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.preferred_article_length}</p>
+                    </div>
+                  )}
+                  {profile.credibility_threshold !== undefined && profile.credibility_threshold !== null && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Credibility Threshold</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{(profile.credibility_threshold * 100).toFixed(0)}%</p>
+                    </div>
+                  )}
                 </div>
 
                 <Separator className="bg-[#8b7355]" />
@@ -242,6 +266,12 @@ export default function SettingsPage() {
                     <div>
                       <p className="text-xs font-medium text-[#6b5744] mb-1">Reading Frequency</p>
                       <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{profile.news_frequency}</p>
+                    </div>
+                  )}
+                  {profile.credibility_threshold !== undefined && profile.credibility_threshold !== null && (
+                    <div>
+                      <p className="text-xs font-medium text-[#6b5744] mb-1">Credibility Threshold</p>
+                      <p className="text-sm text-[#1a0f08] dark:text-[#e0d0b0]">{(profile.credibility_threshold * 100).toFixed(0)}%</p>
                     </div>
                   )}
                 </div>

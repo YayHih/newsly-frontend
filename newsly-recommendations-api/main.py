@@ -130,6 +130,7 @@ class RecommendationResponse(BaseModel):
     article_url: Optional[str]
     article_description: Optional[str]
     created_at: datetime
+    published_at: Optional[datetime]
 
 
 class InteractionCreate(BaseModel):
@@ -459,7 +460,8 @@ async def get_recommendations(
                 a.source as article_source,
                 a.url as article_url,
                 a.description as article_description,
-                r.created_at
+                r.created_at,
+                a.published_at
             FROM user_recommendations r
             LEFT JOIN article_cache a ON r.article_id = a.article_id
             WHERE r.user_id = %s
@@ -495,7 +497,8 @@ async def get_recommendations(
                 "article_source": rec[5],
                 "article_url": rec[6],
                 "article_description": rec[7],
-                "created_at": rec[8]
+                "created_at": rec[8],
+                "published_at": rec[9]
             })
 
         return results

@@ -264,7 +264,7 @@ export default function Home() {
                   impact={rec.recommendation_reason || ""}
                   action={rec.article_url ? `Read more at ${rec.article_source}` : ""}
                   icon="newspaper"
-                  date={new Date(rec.created_at).toLocaleDateString()}
+                  date={rec.published_at ? new Date(rec.published_at).toLocaleDateString() : new Date(rec.created_at).toLocaleDateString()}
                   explanation={rec.article_description || ""}
                   url={rec.article_url || undefined}
                   relevanceScore={rec.relevance_score}

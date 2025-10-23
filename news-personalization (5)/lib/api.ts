@@ -34,6 +34,7 @@ export interface Recommendation {
   article_url: string | null;
   article_description: string | null;
   created_at: string;
+  published_at: string | null;
 }
 
 export interface UserStats {
