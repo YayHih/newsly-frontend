@@ -13,9 +13,9 @@ import { Separator } from "@/components/ui/separator"
 import { CornerDecoration } from "../components/corner-decoration"
 
 export default function CredentialsPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,7 +34,7 @@ export default function CredentialsPage() {
     }, 1500)
   }
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = (): void => {
     setIsLoading(true)
     // Simulate Google signin
     setTimeout(() => {
@@ -49,7 +49,7 @@ export default function CredentialsPage() {
     }, 1500)
   }
 
-  const handleAppleSignIn = () => {
+  const handleAppleSignIn = (): void => {
     setIsLoading(true)
     // Simulate Apple signin
     setTimeout(() => {
@@ -161,7 +161,7 @@ export default function CredentialsPage() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-[#1a0f08] dark:text-[#e0d0b0] placeholder:text-[#8b6f47]"
                 />
               </div>
@@ -175,7 +175,7 @@ export default function CredentialsPage() {
                   type="password"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-[#1a0f08] dark:text-[#e0d0b0] placeholder:text-[#8b6f47]"
                 />
               </div>

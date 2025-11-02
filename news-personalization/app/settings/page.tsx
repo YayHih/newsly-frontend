@@ -8,9 +8,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { api, tokenStorage } from "@/lib/api"
 
+interface Profile {
+  id: number
+  name: string
+  email: string
+  age_range?: string
+  education_level?: string
+  primary_interests?: string[]
+  secondary_interests?: string[]
+  hobbies?: string[]
+  preferred_complexity?: string
+  preferred_article_length?: string
+  news_frequency?: string
+  preferred_content_types?: string[]
+  political_orientation?: string
+  international_focus?: boolean
+  local_focus?: boolean
+  breaking_news_priority?: boolean
+  reading_time_preference?: string
+  device_preference?: string
+  created_at: string
+  updated_at: string
+}
+
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
     loadProfile()

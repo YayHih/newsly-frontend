@@ -16,6 +16,33 @@ export interface User {
   email_verified: boolean;
 }
 
+export interface UserProfile {
+  name?: string;
+  email?: string;
+  age_range?: string;
+  education_level?: string;
+  field_of_study?: string;
+  secondary_field?: string;
+  year_in_program?: number;
+  career_stage?: string;
+  target_industries?: string[];
+  primary_interests?: string[];
+  secondary_interests?: string[];
+  academic_subjects?: string[];
+  hobbies?: string[];
+  topics_to_avoid?: string[];
+  preferred_complexity?: string;
+  preferred_article_length?: string;
+  news_frequency?: string;
+  preferred_content_types?: string[];
+  political_orientation?: string;
+  international_focus?: boolean;
+  local_focus?: boolean;
+  breaking_news_priority?: boolean;
+  reading_time_preference?: string;
+  device_preference?: string;
+}
+
 export interface AuthResponse {
   access_token: string;
   token_type: string;
@@ -99,7 +126,7 @@ export const api = {
     return res.json();
   },
 
-  async updateProfile(token: string, profile: any): Promise<{ message: string }> {
+  async updateProfile(token: string, profile: UserProfile): Promise<{ message: string }> {
     const res = await fetch(`${API_BASE}/auth/profile`, {
       method: 'PUT',
       headers: {

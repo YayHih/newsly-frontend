@@ -11,19 +11,36 @@ import { OnboardingStep } from "../onboarding/components/onboarding-step"
 import { ValuePreview } from "../onboarding/components/value-preview"
 import { CornerDecoration } from "../components/corner-decoration"
 
-type UserProfile = {
+interface UserProfile {
+  // Required fields
+  name?: string
+  email?: string
+  ageRange?: string
+  primaryInterests?: string[]
   educationLevel?: string
+  
+  // Optional fields
+  fieldOfStudy?: string
   fieldsOfStudy?: string[]
   location?: { country: string; region?: string }
-  ageRange?: number
-  yearInProgram?: string
-  immigrationStatus?: string
-  careerGoals?: string[]
-  workStatus?: string
-  financialAid?: boolean
-  politicalOrientation?: number
-  newsFrequency?: string
+  secondaryField?: string
+  yearInProgram?: number
+  careerStage?: string
   targetIndustries?: string[]
+  secondaryInterests?: string[]
+  academicSubjects?: string[]
+  hobbies?: string[]
+  topicsToAvoid?: string[]
+  preferredComplexity?: string
+  preferredArticleLength?: string
+  newsFrequency?: string
+  preferredContentTypes?: string[]
+  politicalOrientation?: string
+  internationalFocus?: boolean
+  localFocus?: boolean
+  breakingNewsPriority?: boolean
+  readingTimePreference?: string
+  devicePreference?: string
 }
 
 const STEPS = [
@@ -39,11 +56,11 @@ const STEPS = [
 ]
 
 export default function ProfileSetupPage() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState<number>(0)
   const [profile, setProfile] = useState<UserProfile>({})
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState<boolean>(false)
 
-  const updateProfile = (key: keyof UserProfile, value: any) => {
+  const updateProfile = (key: keyof UserProfile, value: UserProfile[keyof UserProfile]) => {
     const newProfile = { ...profile, [key]: value }
     setProfile(newProfile)
     localStorage.setItem("noozers-profile", JSON.stringify(newProfile))

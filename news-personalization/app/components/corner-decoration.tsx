@@ -1,3 +1,3 @@
-export function CornerDecoration() {
+export function CornerDecoration(): null {
   return null
 }

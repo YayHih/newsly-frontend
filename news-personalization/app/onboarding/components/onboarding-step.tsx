@@ -52,7 +52,7 @@ type UserProfile = {
 interface OnboardingStepProps {
   step: Step
   profile: UserProfile
-  onUpdate: (key: keyof UserProfile, value: any) => void
+  onUpdate: (key: keyof UserProfile, value: UserProfile[keyof UserProfile]) => void
 }
 
 // Constants for dropdowns and selections
@@ -225,7 +225,7 @@ const DEVICE_PREFERENCES = [
 ]
 
 export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps) {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState<string>("")
   const [selectedInterests, setSelectedInterests] = useState<string[]>(profile.primaryInterests || [])
   const [selectedSecondaryInterests, setSelectedSecondaryInterests] = useState<string[]>(profile.secondaryInterests || [])
   const [selectedTargetIndustries, setSelectedTargetIndustries] = useState<string[]>(profile.targetIndustries || [])
@@ -233,11 +233,11 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
   const [selectedHobbies, setSelectedHobbies] = useState<string[]>(profile.hobbies || [])
   const [selectedTopicsToAvoid, setSelectedTopicsToAvoid] = useState<string[]>(profile.topicsToAvoid || [])
   const [selectedContentTypes, setSelectedContentTypes] = useState<string[]>(profile.preferredContentTypes || [])
-  const [customHobbyInput, setCustomHobbyInput] = useState("")
-  const [customIndustryInput, setCustomIndustryInput] = useState("")
-  const [customSubjectInput, setCustomSubjectInput] = useState("")
+  const [customHobbyInput, setCustomHobbyInput] = useState<string>("")
+  const [customIndustryInput, setCustomIndustryInput] = useState<string>("")
+  const [customSubjectInput, setCustomSubjectInput] = useState<string>("")
 
-  const toggleInterest = (interest: string) => {
+  const toggleInterest = (interest: string): void => {
     const updated = selectedInterests.includes(interest)
       ? selectedInterests.filter((i) => i !== interest)
       : [...selectedInterests, interest]
@@ -245,7 +245,7 @@ export function OnboardingStep({ step, profile, onUpdate }: OnboardingStepProps)
     onUpdate("primaryInterests", updated)
   }
 
-  const toggleSecondaryInterest = (interest: string) => {
+  const toggleSecondaryInterest = (interest: string): void => {
     const updated = selectedSecondaryInterests.includes(interest)
       ? selectedSecondaryInterests.filter((i) => i !== interest)
       : [...selectedSecondaryInterests, interest]

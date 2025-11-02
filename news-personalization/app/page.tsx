@@ -14,12 +14,12 @@ import { api, tokenStorage, Recommendation } from "@/lib/api"
 
 export default function Home() {
   const [date, setDate] = useState<Date>(new Date())
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasProfile, setHasProfile] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [hasProfile, setHasProfile] = useState<boolean>(false)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState<boolean>(false)
 
   useEffect(() => {
     setMounted(true)

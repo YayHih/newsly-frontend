@@ -14,17 +14,17 @@ import { api, tokenStorage } from "@/lib/api"
 
 export default function SignUpPage() {
   const router = useRouter()
-  const [hasAccess, setHasAccess] = useState(true) // Bypass password gate
-  const [accessPassword, setAccessPassword] = useState("")
-  const [accessError, setAccessError] = useState("")
-  const [isCheckingAccess, setIsCheckingAccess] = useState(false)
+  const [hasAccess, setHasAccess] = useState<boolean>(true) // Bypass password gate
+  const [accessPassword, setAccessPassword] = useState<string>("")
+  const [accessError, setAccessError] = useState<string>("")
+  const [isCheckingAccess, setIsCheckingAccess] = useState<boolean>(false)
 
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [name, setName] = useState<string>("")
+  const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [confirmPassword, setConfirmPassword] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
 
   useEffect(() => {
     // Bypass password gate - always grant access
@@ -79,8 +79,9 @@ export default function SignUpPage() {
 
       // Redirect to onboarding
       window.location.href = "/onboarding"
-    } catch (err: any) {
-      setError(err.message || "Registration failed")
+        } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Registration failed"
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

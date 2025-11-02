@@ -20,37 +20,57 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
-type NewsCardProps = {
+type IconType = "dollar-sign" | "credit-card" | "briefcase" | "globe" | "landmark" | "trophy" | "music" | "newspaper"
+
+interface NewsCardProps {
   category: string
   title: string
   impact: string
   action: string
-  icon: "dollar-sign" | "credit-card" | "briefcase" | "globe" | "landmark" | "trophy" | "music" | "newspaper"
+  icon: IconType
   explanation: string
   date: string
   url?: string
   relevanceScore?: number
 }
 
-export function NewsCard({ category, title, impact, action, icon, explanation, date, url, relevanceScore }: NewsCardProps) {
-  const [expanded, setExpanded] = useState(false)
-  const [isInterested, setIsInterested] = useState(false)
-  const [isNotInterested, setIsNotInterested] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
+interface SavedArticles {
+  [key: string]: boolean
+}
+
+interface UserPreferences {
+  [key: string]: "interested" | "not-interested" | null
+}
+
+export function NewsCard({ 
+  category, 
+  title, 
+  impact, 
+  action, 
+  icon, 
+  explanation, 
+  date, 
+  url, 
+  relevanceScore 
+}: NewsCardProps) {
+  const [expanded, setExpanded] = useState<boolean>(false)
+  const [isInterested, setIsInterested] = useState<boolean>(false)
+  const [isNotInterested, setIsNotInterested] = useState<boolean>(false)
+  const [isSaved, setIsSaved] = useState<boolean>(false)
 
   useEffect(() => {
-    const savedArticles = JSON.parse(localStorage.getItem("noozers-saved") || "{}")
+    const savedArticles: SavedArticles = JSON.parse(localStorage.getItem("noozers-saved") || "{}")
     setIsSaved(!!savedArticles[title])
   }, [title])
 
-  const toggleExpand = () => {
+  const toggleExpand = (): void => {
     setExpanded(!expanded)
   }
 
-  const toggleSaved = () => {
+  const toggleSaved = (): void => {
     const newSaved = !isSaved
     setIsSaved(newSaved)
-    const savedArticles = JSON.parse(localStorage.getItem("noozers-saved") || "{}")
+    const savedArticles: SavedArticles = JSON.parse(localStorage.getItem("noozers-saved") || "{}")
     if (newSaved) {
       savedArticles[title] = true
     } else {
@@ -59,18 +79,18 @@ export function NewsCard({ category, title, impact, action, icon, explanation, d
     localStorage.setItem("noozers-saved", JSON.stringify(savedArticles))
   }
 
-  const toggleInterested = () => {
+  const toggleInterested = (): void => {
     setIsInterested(!isInterested)
     if (isNotInterested) setIsNotInterested(false)
-    const preferences = JSON.parse(localStorage.getItem("noozers-interests") || "{}")
+    const preferences: UserPreferences = JSON.parse(localStorage.getItem("noozers-interests") || "{}")
     preferences[category] = isInterested ? null : "interested"
     localStorage.setItem("noozers-interests", JSON.stringify(preferences))
   }
 
-  const toggleNotInterested = () => {
+  const toggleNotInterested = (): void => {
     setIsNotInterested(!isNotInterested)
     if (isInterested) setIsInterested(false)
-    const preferences = JSON.parse(localStorage.getItem("noozers-interests") || "{}")
+    const preferences: UserPreferences = JSON.parse(localStorage.getItem("noozers-interests") || "{}")
     preferences[category] = isNotInterested ? null : "not-interested"
     localStorage.setItem("noozers-interests", JSON.stringify(preferences))
   }

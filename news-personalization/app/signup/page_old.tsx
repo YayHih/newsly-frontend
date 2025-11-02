@@ -13,10 +13,10 @@ import { Separator } from "@/components/ui/separator"
 import { CornerDecoration } from "../components/corner-decoration"
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [confirmPassword, setConfirmPassword] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault()

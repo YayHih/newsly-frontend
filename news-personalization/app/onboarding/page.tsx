@@ -73,12 +73,12 @@ const STEPS = [
 ]
 
 export default function OnboardingPage() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState<number>(0)
   const [profile, setProfile] = useState<UserProfile>({})
-  const [showPreview, setShowPreview] = useState(false)
-  const [isReturning, setIsReturning] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [hasAccess, setHasAccess] = useState(true) // Bypass password gate
+  const [showPreview, setShowPreview] = useState<boolean>(false)
+  const [isReturning, setIsReturning] = useState<boolean>(false)
+  const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [hasAccess, setHasAccess] = useState<boolean>(true) // Bypass password gate
 
   useEffect(() => {
     if (!hasAccess) return;
@@ -128,7 +128,7 @@ export default function OnboardingPage() {
     }
   }, [])
 
-  const updateProfile = (key: keyof UserProfile, value: any) => {
+  const updateProfile = (key: keyof UserProfile, value: UserProfile[keyof UserProfile]): void => {
     const newProfile = { ...profile, [key]: value }
     setProfile(newProfile)
     localStorage.setItem("noozers-profile", JSON.stringify(newProfile))

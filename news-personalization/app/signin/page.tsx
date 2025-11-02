@@ -14,11 +14,11 @@ import { CornerDecoration } from "../components/corner-decoration"
 import { api, tokenStorage } from "@/lib/api"
 
 export default function SignInPage() {
-  const [showCredentials, setShowCredentials] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [showCredentials, setShowCredentials] = useState<boolean>(false)
+  const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,8 +48,9 @@ export default function SignInPage() {
       } else {
         window.location.href = "/"
       }
-    } catch (err: any) {
-      setError(err.message || "Invalid email or password")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid email or password"
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

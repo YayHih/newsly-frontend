@@ -8,7 +8,7 @@ import { tokenStorage } from "@/lib/api"
 export default function AuthCallbackPage() {
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState<string>("")
 
   useEffect(() => {
     const token = searchParams.get("token")

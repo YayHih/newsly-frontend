@@ -15,7 +15,7 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ date, onDateChange }: DatePickerProps) {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState<boolean>(false)
 
   useEffect(() => {
     setMounted(true)
