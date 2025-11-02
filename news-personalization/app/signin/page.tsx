@@ -1,22 +1,28 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { ArrowLeft, Check, UserPlus, LogIn } from "lucide-react"
+import { ArrowLeft, Check, UserPlus, LogIn, Eye, EyeOff } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/hooks/use-toast"
 import { CornerDecoration } from "../components/corner-decoration"
-import { api, tokenStorage } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
+import { api } from "@/lib/api"
 
 export default function SignInPage() {
+  const router = useRouter()
+  const { login } = useAuth()
+  const { toast } = useToast()
   const [showCredentials, setShowCredentials] = useState<boolean>(false)
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
+  const [showPassword, setShowPassword] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
 
@@ -26,39 +32,39 @@ export default function SignInPage() {
     setIsLoading(true)
 
     try {
-      // Login via API
-      const response = await api.login(email, password)
+      await login(email, password)
+      
+      toast({
+        title: "Success!",
+        description: "You have been signed in successfully.",
+      })
 
-      // Store the auth token
-      tokenStorage.set(response.access_token)
-
-      // Store user data
-      const userData = {
-        id: response.user_id,
-        name: response.name,
-        email: response.email,
-        signupMethod: 'email'
-      }
-      localStorage.setItem("noozers-user", JSON.stringify(userData))
-
-      // Check if user has completed onboarding
-      const hasProfile = localStorage.getItem("noozers-onboarding-complete")
-      if (!hasProfile) {
-        window.location.href = "/onboarding"
-      } else {
-        window.location.href = "/"
-      }
+      // Redirect to home
+      router.push("/")
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Invalid email or password"
+      const errorMessage = err instanceof Error ? err.message : "Sign in failed"
       setError(errorMessage)
+      toast({
+        title: "Sign in failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleSignIn = () => {
-    // Redirect to Google OAuth
-    window.location.href = api.getGoogleLoginUrl()
+    try {
+      // Redirect to Google OAuth
+      window.location.href = api.getGoogleLoginUrl()
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to initiate Google sign in",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleShowCredentials = () => {
@@ -66,7 +72,7 @@ export default function SignInPage() {
   }
 
   const handleMakeProfile = () => {
-    window.location.href = "/onboarding"
+    router.push("/onboarding")
   }
 
   if (showCredentials) {
@@ -79,14 +85,14 @@ export default function SignInPage() {
               <div className="flex items-center gap-2">
                 <img 
                   src="/8370d9ef-9307-4d5e-a48e-27287fc5b683.png" 
-                  alt="Noozers" 
+                  alt="Newsly" 
                   className="h-30 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                   style={{ filter: 'brightness(0.7) contrast(1.2) saturate(1.1)' }}
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => router.push('/')}
                 />
               </div>
               <Button
-                onClick={() => (window.location.href = "/")}
+                onClick={() => router.push("/")}
                 variant="outline"
                 className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-xs font-medium text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
               >
@@ -100,7 +106,7 @@ export default function SignInPage() {
           <div className="mx-auto max-w-md">
             <div className="mb-6 text-center">
               <h2 className="mb-2 font-serif text-2xl font-bold text-[#1a0f08] dark:text-[#e0d0b0]">Sign in to your account</h2>
-              <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876]">Choose your preferred method to continue</p>
+              <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876]">Welcome back! Please enter your credentials</p>
             </div>
 
             {error && (
@@ -160,6 +166,7 @@ export default function SignInPage() {
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                     className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-[#1a0f08] dark:text-[#e0d0b0] placeholder:text-[#8b6f47]"
                   />
                 </div>
@@ -168,14 +175,30 @@ export default function SignInPage() {
                   <Label htmlFor="password" className="font-serif text-sm text-[#1a0f08] dark:text-[#e0d0b0]">
                     Password
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-[#1a0f08] dark:text-[#e0d0b0] placeholder:text-[#8b6f47]"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-[#1a0f08] dark:text-[#e0d0b0] placeholder:text-[#8b6f47] pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-[#8b6f47]" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-[#8b6f47]" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 <Button
@@ -198,7 +221,7 @@ export default function SignInPage() {
                 <p className="font-serif text-xs text-[#4a3020] dark:text-[#c9a876]">
                   Don't have an account?{" "}
                   <button
-                    onClick={() => window.location.href = "/signup"}
+                    onClick={() => router.push("/signup")}
                     className="text-[#1a0f08] dark:text-[#8b6f47] hover:underline"
                   >
                     Create one
@@ -233,14 +256,14 @@ export default function SignInPage() {
             <div className="flex items-center gap-2">
               <img 
                 src="/8370d9ef-9307-4d5e-a48e-27287fc5b683.png" 
-                alt="Noozers" 
+                alt="Newsly" 
                 className="h-30 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                 style={{ filter: 'brightness(0.7) contrast(1.2) saturate(1.1)' }}
-                onClick={() => window.location.href = '/'}
+                onClick={() => router.push('/')}
               />
             </div>
             <Button
-              onClick={() => (window.location.href = "/")}
+              onClick={() => router.push("/")}
               variant="outline"
               className="border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-xs font-medium text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
             >
@@ -253,7 +276,7 @@ export default function SignInPage() {
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-md">
           <div className="mb-6 text-center">
-            <h2 className="mb-2 font-serif text-2xl font-bold text-[#1a0f08] dark:text-[#e0d0b0]">Welcome to Noozers</h2>
+            <h2 className="mb-2 font-serif text-2xl font-bold text-[#1a0f08] dark:text-[#e0d0b0]">Welcome to Newsly</h2>
             <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876]">Choose how you'd like to get started</p>
           </div>
 
@@ -263,9 +286,9 @@ export default function SignInPage() {
               <CardContent className="p-6 text-center space-y-4">
                 <div>
                   <LogIn className="mx-auto h-8 w-8 text-[#1a0f08] dark:text-[#8b6f47] mb-3" />
-                  <h3 className="font-serif text-lg font-medium text-[#1a0f08] dark:text-[#e0d0b0] mb-2">Sign In / Create Account</h3>
+                  <h3 className="font-serif text-lg font-medium text-[#1a0f08] dark:text-[#e0d0b0] mb-2">Sign In</h3>
                   <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876]">
-                    Use your existing account or create a new one with your credentials
+                    Access your existing account with your credentials
                   </p>
                 </div>
                 <Button
@@ -278,14 +301,35 @@ export default function SignInPage() {
               </CardContent>
             </Card>
 
+            {/* Create Account Card */}
+            <Card className="vintage-card border-2 border-[#1a0f08] dark:border-[#8b6f47]">
+              <CardContent className="p-6 text-center space-y-4">
+                <div>
+                  <UserPlus className="mx-auto h-8 w-8 text-[#1a0f08] dark:text-[#8b6f47] mb-3" />
+                  <h3 className="font-serif text-lg font-medium text-[#1a0f08] dark:text-[#e0d0b0] mb-2">Create Account</h3>
+                  <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876]">
+                    New to Newsly? Create your personalized account
+                  </p>
+                </div>
+                <Button
+                  onClick={() => router.push("/signup")}
+                  variant="outline"
+                  className="w-full border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-sm font-medium text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create Account
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Make a Profile Card */}
             <Card className="vintage-card border-2 border-[#1a0f08] dark:border-[#8b6f47]">
               <CardContent className="p-6 text-center space-y-4">
                 <div>
                   <UserPlus className="mx-auto h-8 w-8 text-[#1a0f08] dark:text-[#8b6f47] mb-3" />
-                  <h3 className="font-serif text-lg font-medium text-[#1a0f08] dark:text-[#e0d0b0] mb-2">Create Personalized Profile</h3>
+                  <h3 className="font-serif text-lg font-medium text-[#1a0f08] dark:text-[#e0d0b0] mb-2">Just Browse for Now</h3>
                   <p className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876]">
-                    Answer a few questions to get news tailored specifically to your interests and background
+                    Get started with personalized recommendations without creating an account
                   </p>
                 </div>
                 <Button
@@ -294,7 +338,7 @@ export default function SignInPage() {
                   className="w-full border-2 border-[#1a0f08] dark:border-[#8b6f47] bg-[#f4e6d7] dark:bg-[#241610] font-serif text-sm font-medium text-[#1a0f08] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
                 >
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Make a Profile
+                  Get Started
                 </Button>
               </CardContent>
             </Card>
@@ -303,7 +347,7 @@ export default function SignInPage() {
 
         <div className="mt-6 text-center">
           <Button
-            onClick={() => (window.location.href = "/")}
+            onClick={() => router.push("/")}
             variant="ghost"
             className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876] hover:text-[#1a0f08] dark:hover:text-[#e0d0b0]"
           >

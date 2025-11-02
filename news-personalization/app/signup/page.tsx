@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check } from "lucide-react"
+import { Check, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -9,11 +9,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/hooks/use-toast"
 import { CornerDecoration } from "../components/corner-decoration"
-import { api, tokenStorage } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
+import { api } from "@/lib/api"
 
 export default function SignUpPage() {
   const router = useRouter()
+  const { register } = useAuth()
+  const { toast } = useToast()
   const [hasAccess, setHasAccess] = useState<boolean>(true) // Bypass password gate
   const [accessPassword, setAccessPassword] = useState<string>("")
   const [accessError, setAccessError] = useState<string>("")
@@ -23,6 +27,8 @@ export default function SignUpPage() {
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [confirmPassword, setConfirmPassword] = useState<string>("")
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
 
@@ -62,34 +68,39 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      // Register user via API
-      const response = await api.register(email, name, password)
-
-      // Store the auth token
-      tokenStorage.set(response.access_token)
-
-      // Store user data
-      const userData = {
-        id: response.user_id,
-        name: response.name,
-        email: response.email,
-        signupMethod: 'email'
-      }
-      localStorage.setItem("noozers-user", JSON.stringify(userData))
+      await register(email, name, password)
+      
+      toast({
+        title: "Success!",
+        description: "Your account has been created successfully.",
+      })
 
       // Redirect to onboarding
-      window.location.href = "/onboarding"
-        } catch (err: unknown) {
+      router.push("/onboarding")
+    } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed"
       setError(errorMessage)
+      toast({
+        title: "Registration failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleSignUp = () => {
-    // Redirect to Google OAuth
-    window.location.href = api.getGoogleLoginUrl()
+    try {
+      // Redirect to Google OAuth
+      window.location.href = api.getGoogleLoginUrl()
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to initiate Google sign up",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleAccessPasswordSubmit = async (e: React.FormEvent) => {
@@ -176,7 +187,7 @@ export default function SignUpPage() {
 
               <div className="mt-6 text-center">
                 <Button
-                  onClick={() => window.location.href = "/"}
+                  onClick={() => router.push("/")}
                   variant="ghost"
                   className="font-serif text-sm text-[#4a3020] dark:text-[#c9a876] hover:text-[#3d2a1a] dark:hover:text-[#e0d0b0]"
                 >
@@ -202,11 +213,11 @@ export default function SignUpPage() {
                 alt="Newsly"
                 className="h-30 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                 style={{ filter: 'brightness(0.7) contrast(1.2) saturate(1.1)' }}
-                onClick={() => window.location.href = '/'}
+                onClick={() => router.push('/')}
               />
             </div>
             <Button
-              onClick={() => (window.location.href = "/")}
+              onClick={() => router.push("/")}
               variant="outline"
               className="border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-xs font-medium text-[#3d2a1a] dark:text-[#e0d0b0] hover:bg-[#d0be9a] dark:hover:bg-[#3a2418]"
             >
@@ -294,15 +305,30 @@ export default function SignUpPage() {
                   <Label htmlFor="password" className="font-serif text-sm text-[#3d2a1a] dark:text-[#e0d0b0]">
                     Password
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Create a password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-[#3d2a1a] dark:text-[#e0d0b0] placeholder:text-[#8b6f47]"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-[#3d2a1a] dark:text-[#e0d0b0] placeholder:text-[#8b6f47] pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-[#8b6f47]" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-[#8b6f47]" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="font-serif text-xs text-[#4a3020] dark:text-[#c9a876]">
                     8+ characters, uppercase, lowercase, number
                   </p>
@@ -312,15 +338,30 @@ export default function SignUpPage() {
                   <Label htmlFor="confirmPassword" className="font-serif text-sm text-[#3d2a1a] dark:text-[#e0d0b0]">
                     Confirm Password
                   </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-[#3d2a1a] dark:text-[#e0d0b0] placeholder:text-[#8b6f47]"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="border-2 border-[#3d2a1a] dark:border-[#8b6f47] bg-[#f5f0e8] dark:bg-[#241610] font-serif text-[#3d2a1a] dark:text-[#e0d0b0] placeholder:text-[#8b6f47] pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-[#8b6f47]" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-[#8b6f47]" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 <Button
@@ -343,7 +384,7 @@ export default function SignUpPage() {
                 <p className="font-serif text-xs text-[#4a3020] dark:text-[#c9a876]">
                   Already have an account?{" "}
                   <button
-                    onClick={() => window.location.href = "/signin"}
+                    onClick={() => router.push("/signin")}
                     className="text-[#3d2a1a] dark:text-[#8b6f47] hover:underline"
                   >
                     Sign in
